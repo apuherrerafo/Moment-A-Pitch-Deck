@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>@SneakerHead - Moment-A | Host Profile</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b6ec",
+                        "secondary": "#a855f7",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#0B0B15",
+                        "card-dark": "#151525",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        .aura-glow {
+            background: radial-gradient(circle at 50% 50%, rgba(19, 182, 236, 0.08) 0%, rgba(168, 85, 247, 0.05) 50%, transparent 100%);
+        }
+        .glass-nav {
+            backdrop-filter: blur(24px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .stat-card {
+            background-color: white;
+            border: 1px solid #f0f3f4;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .overlay {
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .group:hover .overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-pattern font-display text-gray-900 transition-colors duration-300">
+
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-xl">all_inclusive</span>
+                    </div>
+                    <span class="text-xl font-bold text-gray-900">Moment-A</span>
+                </a>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full text-gray-400">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2">search</span>
+                        <input type="text" placeholder="Search creators, prizes..."
+                            class="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 border-0 focus:ring-2 focus:ring-primary" />
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button class="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded-full transition-all">Log
+                        in</button>
+                    <button
+                        class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-full hover:bg-primary/90 hover:scale-105 transition-all">Sign
+                        Up</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Top Moment-A (Active) Section -->
+    <section class="py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Breadcrumb -->
+            <div class="mb-6 flex items-center gap-2 text-gray-500 text-sm">
+                <a href="hosts.html" class="hover:text-primary flex items-center gap-1 transition-colors">
+                    <span class="material-symbols-outlined text-lg">arrow_back</span>
+                    Back to Hosts
+                </a>
+                <span class="text-gray-400">/</span>
+                <span class="text-gray-800 font-medium">@SneakerHead</span>
+            </div>
+
+            <!-- Main Active Moment-A Banner -->
+            <div class="relative min-h-[500px] overflow-hidden rounded-[3rem] bg-black group shadow-2xl">
+                <div class="absolute inset-0 z-0">
+                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1600&h=900&fit=crop"
+                        alt="Limited Edition Sneakers"
+                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent"></div>
+                </div>
+
+                <div
+                    class="relative z-10 px-8 md:px-16 py-16 text-left text-white max-w-2xl flex flex-col justify-center h-full min-h-[500px]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <img src="https://i.pravatar.cc/150?img=52" alt="@SneakerHead"
+                            class="w-12 h-12 rounded-full border-2 border-primary">
+                        <div>
+                            <p class="font-bold text-lg">@SneakerHead</p>
+                            <p class="text-xs text-gray-400">Verified Host</p>
+                        </div>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 rounded-full mb-6 w-fit">
+                        <span class="text-xs font-bold uppercase tracking-wider text-white">ACTIVE NOW</span>
+                    </div>
+
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+                        Win <span class="text-primary">Limited Edition</span> Air Max
+                    </h1>
+
+                    <p class="text-lg text-gray-300 mb-8 max-w-xl">
+                        Step up your style with these exclusive, sold-out kicks. One lucky follower takes home the
+                        ultimate grail.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-6 mb-8 max-w-sm">
+                        <div>
+                            <p class="text-2xl font-bold">4,150</p>
+                            <p class="text-xs text-gray-400 uppercase">Entries</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-primary">5 Hours</p>
+                            <p class="text-xs text-gray-400 uppercase">Remaining</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <button
+                            class="w-full sm:w-auto px-8 py-4 bg-primary text-white rounded-full font-bold hover:bg-primary/90 hover:scale-105 transition-all shadow-lg shadow-primary/30 text-lg">
+                            Enter Moment-A
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Feed -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="mb-8">
+                        <h2 class="text-3xl md:text-4xl font-bold mb-2">@SneakerHead Feed</h2>
+                        <p class="text-gray-600">Latest drops and collection updates</p>
+                    </div>
+
+                    <div class="space-y-0 border-t border-gray-100">
+                        <!-- Post 1 -->
+                        <div
+                            class="border-b border-gray-100 p-6 hover:bg-gray-50 transition-colors cursor-pointer group">
+                            <div class="flex gap-4">
+                                <img src="https://i.pravatar.cc/150?img=52"
+                                    class="w-12 h-12 rounded-full flex-shrink-0" />
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-bold hover:underline">@SneakerHead</span>
+                                        <span class="text-blue-500"><span
+                                                class="material-symbols-outlined text-sm">verified</span></span>
+                                        <span class="text-gray-500 text-sm">· 3h</span>
+                                    </div>
+                                    <p class="text-gray-700 mb-4">Just got the shipment for the winner! These look even
+                                        better in person. 👟🔥</p>
+                                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=500&fit=crop"
+                                        class="w-full rounded-2xl mb-4 shadow-sm" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="lg:col-span-1">
+                    <div class="sticky top-24 space-y-6">
+                        <div class="bg-gray-50 rounded-3xl p-6 border border-gray-100">
+                            <h3 class="font-bold text-xl mb-6">Trending Moment-A's</h3>
+                            <div class="space-y-4">
+                                <!-- Example Card -->
+                                <div class="pb-4 border-b border-gray-200 last:border-0 group cursor-pointer"
+                                    onclick="window.location.href='host-profile.html'">
+                                    <div class="flex items-start gap-3">
+                                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=100&h=100&fit=crop"
+                                            class="w-16 h-16 rounded-xl object-cover group-hover:scale-105 transition-transform" />
+                                        <div class="flex-1 min-w-0">
+                                            <p
+                                                class="font-bold text-sm mb-1 group-hover:text-primary transition-colors">
+                                                Toyota RAV4 2024</p>
+                                            <p class="text-xs text-gray-500">by @CarLifestyle</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 py-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-8 h-8 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-xl">all_inclusive</span>
+                </div>
+                <span class="text-xl font-bold text-gray-900">Moment-A</span>
+            </div>
+            <p class="text-sm text-gray-400">&copy; 2024 Moment-A. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
