@@ -153,10 +153,13 @@
             transform: scale(1);
             opacity: 1;
         }
+        .moment-a-spin { animation: moment-a-spin 1.2s linear infinite; }
+        @keyframes moment-a-spin { to { transform: rotate(360deg); } }
+        #paymentLoaderOverlay.active, #paymentSuccessOverlay.active, #signUpLoaderOverlay.active { display: flex !important; }
     </style>
 </head>
 
-<body class="bg-pattern font-display text-gray-900 transition-colors duration-300">
+<body class="bg-pattern font-display text-gray-900 transition-colors duration-300" data-profile-id="techguru-profile">
 
     <!-- Navigation -->
     <nav class="glass-nav sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
@@ -249,6 +252,12 @@
 
             <!-- Main Active Moment-A Banner -->
             <div class="relative min-h-[500px] overflow-hidden rounded-[3rem] bg-black group shadow-2xl">
+                <!-- Loader suscrito: esquina superior derecha del banner (solo si logueado + suscrito a este influencer) -->
+                <div id="profile-banner-loader" style="display:none" class="absolute top-6 right-6 md:top-8 md:right-8 z-20 flex items-center justify-center">
+                    <div class="moment-a-spin w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                        <span class="material-symbols-outlined text-white text-2xl md:text-3xl">all_inclusive</span>
+                    </div>
+                </div>
                 <!-- Background Image -->
                 <div class="absolute inset-0 z-0">
                     <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1600&h=900&fit=crop"
@@ -296,7 +305,14 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div id="enter-moment-a-section" class="flex flex-col sm:flex-row items-center gap-4 flex-wrap">
+                        <div id="profile-opportunities-badge" style="display:none" class="flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full border border-primary/40">
+                            <span id="profile-opportunities-count" class="font-bold text-primary">0</span>
+                            <span class="text-white text-sm">Opportunities</span>
+                            <span class="moment-a-spin w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-white text-sm">all_inclusive</span>
+                            </span>
+                        </div>
                         <button onclick="openEnterModal(event)"
                             class="w-full sm:w-auto px-8 py-4 bg-primary text-white rounded-full font-bold hover:bg-primary/90 hover:scale-105 transition-all shadow-lg shadow-primary/30 text-lg">
                             Enter Moment-A
@@ -647,6 +663,66 @@
         </div>
     </div>
 
+    <!-- Tier Selection Modal -->
+    <div id="tierSelectionModal" class="modal-overlay">
+        <div class="modal-content p-8 max-w-lg">
+            <div class="flex justify-end mb-4">
+                <button type="button" onclick="closeTierSelectionModal()" class="text-gray-400 hover:text-gray-600 transition-colors"><span class="material-symbols-outlined text-3xl">close</span></button>
+            </div>
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold mb-2">Choose your opportunities</h2>
+                <p class="text-gray-600 text-sm">1 opportunity = 1 ticket for this creator's Moment-A's during your subscription month.</p>
+            </div>
+            <div class="space-y-4">
+                <button type="button" id="tier-btn-1" class="w-full p-5 rounded-2xl border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all text-left">
+                    <div class="flex justify-between items-center"><span class="font-bold text-lg">Starter</span><span class="text-primary font-bold">4 Opportunities · $2.99 USD</span></div>
+                    <p class="text-gray-600 text-sm mt-2">4 tickets for this creator's Moment-A's this month.</p>
+                </button>
+                <button type="button" id="tier-btn-2" class="w-full p-5 rounded-2xl border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all text-left">
+                    <div class="flex justify-between items-center"><span class="font-bold text-lg">Creator</span><span class="text-primary font-bold">8 Opportunities · $4.99 USD</span></div>
+                    <p class="text-gray-600 text-sm mt-2">Everything in Starter + subscriber-only feed.</p>
+                </button>
+                <button type="button" id="tier-btn-3" class="w-full p-5 rounded-2xl border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all text-left">
+                    <div class="flex justify-between items-center"><span class="font-bold text-lg">Premium</span><span class="text-primary font-bold">20 Opportunities · $9.99 USD</span></div>
+                    <p class="text-gray-600 text-sm mt-2">Everything in Creator + live events with surprise prizes.</p>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content p-8 max-w-md relative">
+            <div class="flex justify-end mb-4">
+                <button type="button" id="closePaymentModal" class="text-gray-400 hover:text-gray-600 transition-colors"><span class="material-symbols-outlined text-3xl">close</span></button>
+            </div>
+            <div class="mb-6">
+                <p class="text-sm text-gray-600">Paying for <span id="payment-tier-name" class="font-semibold"></span>: <span id="payment-tier-opportunities" class="font-bold text-primary"></span> opportunities · $<span id="payment-tier-price"></span> USD</p>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Pay with debit or credit card (VISA / Mastercard)</p>
+            <form id="paymentForm" class="space-y-4">
+                <div><label class="block text-sm font-medium mb-1">Card number</label><input type="text" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" class="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:ring-2 focus:ring-primary" required /></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium mb-1">Expiry (MM/YY)</label><input type="text" maxlength="5" placeholder="12/28" class="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:ring-2 focus:ring-primary" required /></div>
+                    <div><label class="block text-sm font-medium mb-1">CVC</label><input type="text" inputmode="numeric" maxlength="4" placeholder="123" class="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:ring-2 focus:ring-primary" required /></div>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Name on card</label><input type="text" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:ring-2 focus:ring-primary" required /></div>
+                <button type="submit" class="w-full py-4 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-all">Pay</button>
+            </form>
+            <div id="paymentLoaderOverlay" class="hidden absolute inset-0 bg-white/95 rounded-2xl flex flex-col items-center justify-center z-10">
+                <div class="moment-a-spin w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-white text-3xl">all_inclusive</span>
+                </div>
+                <p class="text-gray-600">Processing...</p>
+            </div>
+        </div>
+    </div>
+    <div id="paymentSuccessOverlay" class="hidden fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[1100] text-white">
+        <div class="moment-a-spin w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+        </div>
+        <p class="text-xl font-bold mb-2">¡Éxito!</p>
+        <p id="paymentSuccessMessage" class="text-gray-300 text-center max-w-sm"></p>
+    </div>
     <!-- Enter Required Modal -->
     <div id="enterRequiredModal" class="modal-overlay">
         <div class="modal-content p-8">
@@ -690,7 +766,7 @@
 
     <!-- Sign Up Modal -->
     <div id="signUpModal" class="modal-overlay">
-        <div class="modal-content p-8">
+        <div class="modal-content p-8 relative">
             <div class="flex justify-end mb-4">
                 <button onclick="closeSignUpModal()"
                     class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -750,16 +826,25 @@
                     <button type="submit" class="w-full py-4 bg-gradient-to-r from-primary to-blue-600 text-white rounded-full font-semibold hover:scale-105 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2">Create Account <span class="material-symbols-outlined">check_circle</span></button>
                 </div>
                 <div id="signUpStep4" style="display:none" class="text-center py-4">
-                    <span class="material-symbols-outlined text-6xl text-green-500 mb-4">check_circle</span>
-                    <h3 class="text-xl font-bold mb-2">Account created successfully!</h3>
-                    <p class="text-gray-600 mb-6">You are now logged in.</p>
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-white text-4xl">check_circle</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">¡Cuenta creada!</h3>
+                    <p class="text-gray-600 mb-6">Tu cuenta se ha creado correctamente. Ya puedes participar en Moment-A's y optar a premios reales.</p>
                     <button type="button" id="signUpOkBtn" class="w-full py-4 bg-primary text-white rounded-full font-semibold hover:scale-105 transition-all">OK</button>
                 </div>
             </form>
+            <div id="signUpLoaderOverlay" class="hidden absolute inset-0 bg-white rounded-2xl flex flex-col items-center justify-center z-10">
+                <div class="moment-a-spin w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-white text-3xl">all_inclusive</span>
+                </div>
+                <p class="text-gray-600">Creando tu cuenta...</p>
+            </div>
         </div>
     </div>
 
     <script src="auth.js"></script>
+    <script src="subscriptions.js"></script>
 </body>
 
 </html>

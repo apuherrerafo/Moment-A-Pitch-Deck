@@ -28,7 +28,19 @@ function saveUsers(users) {
 function getCurrentUser() {
     try {
         const data = localStorage.getItem(STORAGE_KEY_CURRENT);
-        return data ? JSON.parse(data) : null;
+        const user = data ? JSON.parse(data) : null;
+        if (!user) return null;
+        // Solo considerar logueado si el usuario sigue existiendo en la lista
+        const users = getUsers();
+        const exists = users.some(u =>
+            (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()) ||
+            (u.phone && user.phone && u.phone === user.phone)
+        );
+        if (!exists) {
+            setCurrentUser(null); // limpiar sesión inválida
+            return null;
+        }
+        return user;
     } catch (e) {
         return null;
     }
@@ -66,6 +78,10 @@ function closeModal(modalId) {
 }
 
 function openEnterModal(event) {
+    if (getCurrentUser() && typeof window.openTierSelectionModal === 'function') {
+        window.openTierSelectionModal(event);
+        return;
+    }
     openModal('enterRequiredModal', event);
 }
 
@@ -186,7 +202,17 @@ function handleSignUpStep3() {
     saveUsers(users);
     setCurrentUser({ displayName: DISPLAY_USERNAME, email: newUser.email, phone: newUser.phone });
     signupTempData = null;
-    showSignUpStep(4);
+
+    var loaderEl = document.getElementById('signUpLoaderOverlay');
+    if (loaderEl) {
+        loaderEl.classList.add('active');
+        setTimeout(function () {
+            loaderEl.classList.remove('active');
+            showSignUpStep(4);
+        }, 2000);
+    } else {
+        showSignUpStep(4);
+    }
 }
 
 function handleSignUpStep4OK() {
@@ -280,15 +306,26 @@ function initLogInForm() {
     });
 }
 
+function logout() {
+    setCurrentUser(null);
+    updateNavForAuth();
+}
+
 function updateNavForAuth() {
-    const isLoggedIn = !!getCurrentUser();
+    const current = getCurrentUser();
+    const isLoggedIn = !!current;
     const guestEl = document.getElementById('nav-guest');
     const userEl = document.getElementById('nav-user');
-    if (guestEl) guestEl.style.display = isLoggedIn ? 'none' : '';
+    // Deslogueado: mostrar "Become a host", "Log in", "Sign Up". Ocultar abc123 y Log out.
+    if (guestEl) guestEl.style.display = isLoggedIn ? 'none' : 'flex';
     if (userEl) {
-        userEl.style.display = isLoggedIn ? '' : 'none';
+        userEl.style.display = isLoggedIn ? 'flex' : 'none';
         const nameEl = userEl.querySelector('[data-username]');
-        if (nameEl) nameEl.textContent = DISPLAY_USERNAME;
+        if (nameEl) nameEl.textContent = (current && current.displayName) || DISPLAY_USERNAME;
+    }
+    // Actualizar badge de oportunidades en profile (solo visible si logueado + suscrito)
+    if (typeof window.updateProfileOpportunitiesUI === 'function') {
+        window.updateProfileOpportunitiesUI();
     }
 }
 
@@ -321,6 +358,8 @@ window.closeSignUpModal = closeSignUpModal;
 window.openLogInModal = openLogInModal;
 window.closeLogInModal = closeLogInModal;
 window.switchToSignUp = switchToSignUp;
+window.logout = logout;
+window.getCurrentUser = getCurrentUser;
 
 document.addEventListener('DOMContentLoaded', function () {
     initSignUpForm();
