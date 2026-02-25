@@ -263,17 +263,46 @@
                             <span data-username class="text-sm font-medium">abc123</span>
                             <span class="material-symbols-outlined text-lg dropdown-chevron">expand_more</span>
                         </button>
-                        <div id="nav-user-dropdown" class="nav-user-dropdown-closed absolute right-0 mt-2 w-48 sm:w-56 bg-white shadow-xl border border-gray-200 rounded-xl z-50 pt-4 pb-3 px-1 border-t border-gray-200">
-                            <p data-dropdown-username class="px-4 py-1 text-gray-900 text-sm font-semibold">abc123</p>
-                            <p data-dropdown-secondary class="px-4 py-0 text-gray-500 text-xs truncate">demo@momenta.com</p>
-                            <a id="nav-dropdown-business-manager" href="host-dashboard.html" style="display:none" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition flex items-center gap-2 rounded-lg border-0 bg-transparent cursor-pointer text-left w-full">
-                                <span class="material-symbols-outlined text-sm">business_center</span>
+                        <div id="nav-user-dropdown" class="nav-user-dropdown-closed absolute right-0 mt-2 w-56 bg-white shadow-xl border border-gray-200 rounded-xl z-50 py-1">
+                            <div class="px-4 py-3">
+                                <p data-dropdown-username class="text-gray-900 text-sm font-semibold">abc123</p>
+                                <p data-dropdown-secondary class="text-gray-500 text-xs truncate mt-0.5">demo@momenta.com</p>
+                            </div>
+                            <div class="border-b border-gray-100"></div>
+                            <a id="nav-dropdown-business-manager" href="host-dashboard.html" style="display:none" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">dashboard</span>
                                 Business Manager
                             </a>
-                            <div class="border-t border-gray-100 my-2"></div>
-                            <button type="button" onclick="logOut()" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:text-red-500 hover:bg-gray-50 transition flex items-center gap-2 border-0 bg-transparent cursor-pointer rounded-lg">
-                                <span class="material-symbols-outlined text-sm">logout</span>
-                                Log Out
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">person</span>
+                                Profile
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">manage_accounts</span>
+                                Account Info
+                            </a>
+                            <div class="border-b border-gray-100"></div>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">account_balance_wallet</span>
+                                Wallet
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">confirmation_number</span>
+                                Subscriptions
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">receipt_long</span>
+                                Receipts
+                            </a>
+                            <div class="border-b border-gray-100"></div>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">card_giftcard</span>
+                                Benefits
+                            </a>
+                            <div class="border-b border-gray-100"></div>
+                            <button type="button" onclick="logOut()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-500 transition border-0 bg-transparent cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px] text-gray-400">logout</span>
+                                Sign Out
                             </button>
                         </div>
                     </div>
