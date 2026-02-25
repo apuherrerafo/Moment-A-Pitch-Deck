@@ -282,6 +282,10 @@
         </div>
     </nav>
 
+    <style>
+        .feed-hidden { display: none !important; }
+    </style>
+
     <!-- Feed Toggle Pills -->
     <div class="flex justify-center py-2 border-b border-gray-200 bg-white">
         <div class="inline-flex bg-gray-100 rounded-full p-0.5">
@@ -291,7 +295,7 @@
     </div>
 
     <!-- Moment-A's Feed (hidden by default) -->
-    <div id="feed-momenta" style="display:none">
+    <div id="feed-momenta" class="feed-hidden">
         <div class="max-w-6xl mx-auto px-6 pt-4 pb-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -1781,13 +1785,13 @@
             var base = 'px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer ';
 
             if (tab === 'momenta') {
-                hosts.style.display = 'none';
-                momenta.style.display = 'block';
+                hosts.classList.add('feed-hidden');
+                momenta.classList.remove('feed-hidden');
                 pillM.className = base + 'bg-white text-gray-900 shadow-sm';
                 pillH.className = base + 'text-gray-500 hover:text-gray-700';
             } else {
-                hosts.style.display = 'block';
-                momenta.style.display = 'none';
+                hosts.classList.remove('feed-hidden');
+                momenta.classList.add('feed-hidden');
                 pillH.className = base + 'bg-white text-gray-900 shadow-sm';
                 pillM.className = base + 'text-gray-500 hover:text-gray-700';
             }
