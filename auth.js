@@ -559,11 +559,46 @@ function navigateExplore(e) {
     if (cur) {
         window.location.href = 'hosts.html#hosts';
     } else {
-        openLogInModal(e);
+        openExploreGate();
     }
 }
 
+function openExploreGate() {
+    var existing = document.getElementById('explore-gate-modal');
+    if (existing) existing.remove();
+
+    if (!document.getElementById('explore-gate-style')) {
+        var style = document.createElement('style');
+        style.id = 'explore-gate-style';
+        style.textContent = '@keyframes modalSlideUp{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}';
+        document.head.appendChild(style);
+    }
+
+    var overlay = document.createElement('div');
+    overlay.id = 'explore-gate-modal';
+    overlay.className = 'modal-overlay active';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+    overlay.onclick = function(ev) { if (ev.target === overlay) overlay.remove(); };
+
+    overlay.innerHTML = '<div style="background:white;border-radius:1.5rem;padding:2.5rem;max-width:420px;width:90%;text-align:center;animation:modalSlideUp 0.3s ease-out;">'
+        + '<div style="width:64px;height:64px;margin:0 auto 1.25rem;background:linear-gradient(135deg,#22d3ee,#a855f7);border-radius:1rem;display:flex;align-items:center;justify-content:center;">'
+        + '<span class="material-symbols-outlined" style="color:white;font-size:32px;">explore</span></div>'
+        + '<h2 style="font-size:1.375rem;font-weight:700;color:#111827;margin-bottom:0.5rem;">Join Moment-A to Explore</h2>'
+        + '<p style="color:#6b7280;font-size:0.9rem;line-height:1.5;margin-bottom:1.75rem;">To continue exploring giveaways and creators, you need an account.<br><strong style="color:#111827;">It\'s completely free!</strong></p>'
+        + '<button onclick="document.getElementById(\'explore-gate-modal\').remove();openSignUpModal(event);" style="width:100%;padding:0.75rem;background:linear-gradient(135deg,#22d3ee,#a855f7);color:white;border:none;border-radius:9999px;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:0.75rem;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">Create Free Account</button>'
+        + '<button onclick="document.getElementById(\'explore-gate-modal\').remove();openLogInModal(event);" style="width:100%;padding:0.75rem;background:transparent;color:#6b7280;border:1px solid #e5e7eb;border-radius:9999px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#a855f7\';this.style.color=\'#a855f7\'" onmouseout="this.style.borderColor=\'#e5e7eb\';this.style.color=\'#6b7280\'">I already have an account</button>'
+        + '</div>';
+
+    document.body.appendChild(overlay);
+}
+
+function closeExploreGate() {
+    var el = document.getElementById('explore-gate-modal');
+    if (el) el.remove();
+}
+
 window.navigateExplore = navigateExplore;
+window.closeExploreGate = closeExploreGate;
 window.openEnterModal = openEnterModal;
 window.closeEnterModal = closeEnterModal;
 window.switchToSignUpFromEnter = switchToSignUpFromEnter;
