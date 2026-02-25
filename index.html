@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html class="light scroll-smooth" lang="en">
 
 <head>
     <meta charset="utf-8" />
@@ -52,6 +52,49 @@
 
         .dark .glass-nav {
             background-color: rgba(18, 18, 33, 0.8);
+        }
+
+        @keyframes slow-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .loader-spin {
+            animation: slow-spin 1.5s linear infinite;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .loader-pulse {
+            animation: pulse-soft 1.5s ease-in-out infinite;
+        }
+        .login-welcome-fade {
+            animation: welcome-fade-in 0.3s ease-out forwards;
+        }
+        @keyframes welcome-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fade-out {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        .welcome-fade-out {
+            animation: fade-out 500ms ease-out forwards;
+        }
+        .nav-user-dropdown-closed {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-8px);
+        }
+        #nav-user-dropdown {
+            transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+        }
+        [data-dropdown-trigger] .dropdown-chevron {
+            transition: transform 0.2s ease;
+        }
+        .nav-user-dropdown-open .dropdown-chevron {
+            transform: rotate(180deg);
         }
 
         /* Dropdown Styles */
@@ -142,16 +185,6 @@
             background: #1f2937;
         }
 
-        .moment-a-spin {
-            animation: moment-a-spin 1.2s linear infinite;
-        }
-        @keyframes moment-a-spin {
-            to { transform: rotate(360deg); }
-        }
-        #signUpLoaderOverlay.active {
-            display: flex !important;
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -209,12 +242,12 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden lg:flex items-center gap-6">
-                    <a href="index.html#about" class="text-sm font-medium hover:text-primary transition-colors">About
+                    <a href="#about" class="text-sm font-medium hover:text-primary transition-colors">About
                         Us</a>
 
                     <!-- Explore Dropdown -->
                     <div class="dropdown">
-                        <a href="index.html#explore"
+                        <a href="hosts.html"
                             class="text-sm font-medium hover:text-primary transition-colors cursor-pointer">Explore</a>
                         <div class="dropdown-menu">
                             <a href="index.html#moments" class="dropdown-item text-sm font-medium">Moment-A's</a>
@@ -224,7 +257,7 @@
 
                     <!-- How it works Dropdown -->
                     <div class="dropdown">
-                        <a href="index.html#how-it-works"
+                        <a href="#how-it-works"
                             class="text-sm font-medium hover:text-primary transition-colors cursor-pointer">How it
                             works</a>
                         <div class="dropdown-menu">
@@ -233,16 +266,14 @@
                         </div>
                     </div>
 
-                    <a href="index.html#pricing"
-                        class="text-sm font-medium hover:text-primary transition-colors">Pricing</a>
                 </div>
 
                 <!-- Action Buttons -->
                 <div id="nav-guest" class="flex items-center gap-3">
-                    <button
+                    <a href="host-application.html"
                         class="hidden sm:block px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-all">
                         Become a host
-                    </button>
+                    </a>
                     <button onclick="openLogInModal(event)"
                         class="px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all">
                         Log in
@@ -252,10 +283,31 @@
                         Sign Up
                     </button>
                 </div>
-                <div id="nav-user" style="display:none" class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">person</span>
-                    <span data-username class="text-sm font-medium">abc123</span>
-                    <button type="button" onclick="logout()" class="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Log out</button>
+                <div id="nav-user" style="display:none" class="flex items-center gap-3">
+                    <a href="host-application.html"
+                        class="hidden sm:block px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-all">
+                        Become a host
+                    </a>
+                    <div class="relative">
+                        <button type="button" data-dropdown-trigger onclick="toggleUserDropdown(event)" class="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all border-0 cursor-pointer bg-transparent">
+                            <span class="material-symbols-outlined text-primary text-xl">person</span>
+                            <span data-username class="text-sm font-medium">abc123</span>
+                            <span class="material-symbols-outlined text-lg dropdown-chevron">expand_more</span>
+                        </button>
+                        <div id="nav-user-dropdown" class="nav-user-dropdown-closed absolute right-0 mt-2 w-48 sm:w-56 bg-white shadow-xl border border-gray-200 rounded-xl z-50 pt-4 pb-3 px-1 border-t border-gray-200">
+                            <p data-dropdown-username class="px-4 py-1 text-gray-900 text-sm font-semibold">abc123</p>
+                            <p data-dropdown-secondary class="px-4 py-0 text-gray-500 text-xs truncate">demo@momenta.com</p>
+                            <a id="nav-dropdown-business-manager" href="host-dashboard.html" style="display:none" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition flex items-center gap-2 rounded-lg border-0 bg-transparent cursor-pointer text-left w-full">
+                                <span class="material-symbols-outlined text-sm">business_center</span>
+                                Business Manager
+                            </a>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <button type="button" onclick="logOut()" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:text-red-500 hover:bg-gray-50 transition flex items-center gap-2 border-0 bg-transparent cursor-pointer rounded-lg">
+                                <span class="material-symbols-outlined text-sm">logout</span>
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,10 +352,10 @@
                             class="px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 hover:scale-105 transition-all shadow-lg shadow-primary/30">
                             Explore Moment-A's
                         </button>
-                        <button
-                            class="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-full font-semibold hover:bg-white/20 transition-all border border-white/30">
+                        <a href="host-application.html"
+                            class="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-full font-semibold hover:bg-white/20 transition-all border border-white/30 inline-block">
                             Become a host
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -606,35 +658,95 @@
         </div>
     </section>
 
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-4">
+                Redefining Giveaways for the Creator Economy
+            </h2>
+            <p class="text-gray-500 text-center max-w-2xl mx-auto mb-16">
+                Moment-A is the first platform where creators launch verified, transparent giveaways — and their communities actually win.
+            </p>
+
+            <!-- 3 Pillars -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="text-center p-8 bg-gray-50 rounded-3xl">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-2xl">verified</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Verified Hosts</h3>
+                    <p class="text-sm text-gray-500">Every host goes through an application and verification process before launching a Moment-A.</p>
+                </div>
+                <div class="text-center p-8 bg-gray-50 rounded-3xl">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-secondary/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-secondary text-2xl">redeem</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Real Prizes</h3>
+                    <p class="text-sm text-gray-500">From cars to iPhones to luxury trips — every prize is verified, purchased, and guaranteed to be delivered.</p>
+                </div>
+                <div class="text-center p-8 bg-gray-50 rounded-3xl">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-green-500/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-green-500 text-2xl">visibility</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Transparent Selection</h3>
+                    <p class="text-sm text-gray-500">Winners are selected live with a verifiable, tamper-proof algorithm. No manipulation, no bias.</p>
+                </div>
+            </div>
+
+            <!-- The Opportunity -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+                <div class="text-center p-6 bg-gray-50 rounded-2xl">
+                    <p class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">$50B+</p>
+                    <p class="text-xs text-gray-500 mt-1">Creator economy market</p>
+                </div>
+                <div class="text-center p-6 bg-gray-50 rounded-2xl">
+                    <p class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">500M+</p>
+                    <p class="text-xs text-gray-500 mt-1">Social media users in giveaway demographics</p>
+                </div>
+                <div class="text-center p-6 bg-gray-50 rounded-2xl">
+                    <p class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">87%</p>
+                    <p class="text-xs text-gray-500 mt-1">Distrust current giveaways</p>
+                </div>
+                <div class="text-center p-6 bg-gray-50 rounded-2xl">
+                    <p class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">3×</p>
+                    <p class="text-xs text-gray-500 mt-1">Higher engagement vs traditional giveaways</p>
+                </div>
+            </div>
+
+            <!-- Vision -->
+            <div class="text-center mb-16 max-w-3xl mx-auto">
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Our Vision</h3>
+                <p class="text-gray-600">We're building the global standard for creator-driven rewards. A world where every giveaway is real, every participant has a fair shot, and creators have the tools to build genuine loyalty.</p>
+            </div>
+
+        </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
             <div
                 class="relative overflow-hidden rounded-[3rem] bg-gradient-to-r from-primary via-blue-500 to-secondary p-12 md:p-16">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-                    <!-- Left: Text Content -->
                     <div class="text-white">
                         <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Ready to reward your fans?</h2>
                         <p class="text-lg mb-8 text-white/90 max-w-lg">
                             Join over 5,000 creators who use Moment-A to supercharge their engagement and build lasting
                             community bonds.
                         </p>
-                        <button
+                        <a href="host-application.html"
                             class="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary rounded-full font-semibold hover:scale-105 transition-all shadow-xl">
                             Host Application
                             <span class="material-symbols-outlined text-xl">bolt</span>
-                        </button>
+                        </a>
                     </div>
-
-                    <!-- Right: Image -->
                     <div class="relative flex justify-end">
                         <div class="relative w-full max-w-md">
                             <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop"
                                 alt="Creators" class="rounded-3xl shadow-2xl w-full h-auto object-cover" />
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -686,12 +798,10 @@
                 <div>
                     <h4 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-widest">Platform</h4>
                     <ul class="space-y-3">
-                        <li><a href="index.html#explore"
+                        <li><a href="hosts.html"
                                 class="text-sm text-gray-500 hover:text-primary transition-colors">Explore</a></li>
-                        <li><a href="index.html#how-it-works"
+                        <li><a href="#how-it-works"
                                 class="text-sm text-gray-500 hover:text-primary transition-colors">How it works</a></li>
-                        <li><a href="index.html#pricing"
-                                class="text-sm text-gray-500 hover:text-primary transition-colors">Pricing</a></li>
                         <li><a href="#" class="text-sm text-gray-500 hover:text-primary transition-colors">Become a
                                 host</a></li>
                     </ul>
@@ -742,30 +852,31 @@
     <!-- Log In Modal -->
     <div id="logInModal" class="modal-overlay">
         <div class="modal-content p-8">
-            <!-- Close Button -->
-            <div class="flex justify-end mb-4">
+            <!-- Close Button (hidden during loader/welcome) -->
+            <div class="login-modal-close-wrap flex justify-end mb-4">
                 <button onclick="closeLogInModal()"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     <span class="material-symbols-outlined text-3xl">close</span>
                 </button>
             </div>
 
-            <!-- Welcome Back Message -->
-            <div class="text-center mb-8">
-                <div
-                    class="w-16 h-16 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+            <div id="loginFormContent">
+                <!-- Welcome Back Message -->
+                <div class="text-center mb-8">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-2">Welcome Back!</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Log in to continue your journey</p>
                 </div>
-                <h2 class="text-3xl font-bold mb-2">Welcome Back!</h2>
-                <p class="text-gray-600 dark:text-gray-400">Log in to continue your journey</p>
-            </div>
 
-            <!-- Log In Form -->
-            <form id="logInForm" class="space-y-6">
+                <!-- Log In Form -->
+                <form id="logInForm" class="space-y-6">
                 <div>
-                    <label for="login-identifier" class="block text-sm font-medium mb-2">Phone or Email</label>
-                    <input type="text" id="login-identifier" name="identifier" required
-                        placeholder="Enter your phone or email"
+                    <label for="login-dni" class="block text-sm font-medium mb-2">DNI</label>
+                    <input type="text" id="login-dni" name="dni" required
+                        placeholder="e.g., 72188813"
                         class="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-0 focus:ring-2 focus:ring-primary transition-all" />
                 </div>
 
@@ -790,12 +901,27 @@
                         Up</a>
                 </p>
             </form>
+            </div>
+
+            <div id="loginLoader" class="hidden flex flex-col items-center justify-center py-12">
+                <div class="w-16 h-16 loader-spin flex items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600">
+                    <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                </div>
+                <p class="mt-4 text-sm text-gray-300 loader-pulse">Signing you in...</p>
+            </div>
+            <div id="loginWelcome" class="hidden flex flex-col items-center justify-center py-12 login-welcome-fade">
+                <div class="w-16 h-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600">
+                    <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                </div>
+                <h2 class="mt-4 text-2xl font-bold text-gray-900 font-display">Welcome back!</h2>
+                <p class="mt-2 text-sm text-gray-400">You're all set. Let's find your next Moment-A.</p>
+            </div>
         </div>
     </div>
 
     <!-- Sign Up Modal -->
     <div id="signUpModal" class="modal-overlay">
-        <div class="modal-content p-8 relative">
+        <div class="modal-content p-8">
             <!-- Close Button -->
             <div class="flex justify-end mb-4">
                 <button onclick="closeSignUpModal()"
@@ -881,143 +1007,23 @@
 
                 <!-- Step 4: Success -->
                 <div id="signUpStep4" style="display:none" class="text-center py-4">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
-                        <span class="material-symbols-outlined text-white text-4xl">check_circle</span>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">¡Cuenta creada!</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-6">Tu cuenta se ha creado correctamente. Ya puedes participar en Moment-A's y optar a premios reales.</p>
+                    <span class="material-symbols-outlined text-6xl text-green-500 mb-4">check_circle</span>
+                    <h3 class="text-xl font-bold mb-2">Account created successfully!</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">You are now logged in.</p>
                     <button type="button" id="signUpOkBtn" class="w-full py-4 bg-primary text-white rounded-full font-semibold hover:scale-105 transition-all">OK</button>
                 </div>
             </form>
-            <!-- Loader al crear cuenta (isotipo 2 segundos) -->
-            <div id="signUpLoaderOverlay" class="hidden absolute inset-0 bg-white dark:bg-gray-900 rounded-2xl flex flex-col items-center justify-center z-10">
-                <div class="moment-a-spin w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-white text-3xl">all_inclusive</span>
-                </div>
-                <p class="text-gray-600 dark:text-gray-400">Creando tu cuenta...</p>
-            </div>
         </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- Countdown (index-specific) -->
     <script>
-        // Store button position for animation
-        let clickPosition = { x: 0, y: 0 };
-
-        // Modal Functions for Sign Up
-        function openSignUpModal(event) {
-            const modal = document.getElementById('signUpModal');
-            const modalContent = modal.querySelector('.modal-content');
-
-            if (event) {
-                // Get button position
-                const rect = event.target.getBoundingClientRect();
-                const buttonCenterX = rect.left + rect.width / 2;
-                const buttonCenterY = rect.top + rect.height / 2;
-
-                // Set transform origin to exact button position
-                modalContent.style.transformOrigin = `${buttonCenterX}px ${buttonCenterY}px`;
-
-                console.log('Sign Up - Button position:', buttonCenterX, buttonCenterY);
-            } else {
-                // Default to center if no event
-                modalContent.style.transformOrigin = 'center center';
-            }
-
-            // Force a reflow to ensure the animation triggers
-            modal.offsetHeight;
-
-            // Use requestAnimationFrame to ensure the transition happens
-            requestAnimationFrame(() => {
-                modal.classList.add('active');
-            });
-
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeSignUpModal() {
-            const modal = document.getElementById('signUpModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Modal Functions for Log In
-        function openLogInModal(event) {
-            const modal = document.getElementById('logInModal');
-            const modalContent = modal.querySelector('.modal-content');
-
-            if (event) {
-                // Get button position
-                const rect = event.target.getBoundingClientRect();
-                const buttonCenterX = rect.left + rect.width / 2;
-                const buttonCenterY = rect.top + rect.height / 2;
-
-                // Set transform origin to exact button position
-                modalContent.style.transformOrigin = `${buttonCenterX}px ${buttonCenterY}px`;
-
-                console.log('Log In - Button position:', buttonCenterX, buttonCenterY);
-            } else {
-                // Default to center if no event
-                modalContent.style.transformOrigin = 'center center';
-            }
-
-            // Force a reflow to ensure the animation triggers
-            modal.offsetHeight;
-
-            // Use requestAnimationFrame to ensure the transition happens
-            requestAnimationFrame(() => {
-                modal.classList.add('active');
-            });
-
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLogInModal() {
-            const modal = document.getElementById('logInModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Switch between modals
-        function switchToSignUp(event) {
-            event.preventDefault();
-            closeLogInModal();
-            setTimeout(() => openSignUpModal(), 100);
-        }
-
-        // Close modals when clicking outside
-        document.getElementById('signUpModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeSignUpModal();
-            }
-        });
-
-        document.getElementById('logInModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeLogInModal();
-            }
-        });
-
-        // Sign Up and Log In form handlers are in auth.js (localStorage)
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeSignUpModal();
-                closeLogInModal();
-            }
-        });
-
-        // Countdown functionality
         function startCountdown(elementId, initialMinutes, initialSeconds) {
             let totalSeconds = initialMinutes * 60 + initialSeconds;
             const element = document.getElementById(elementId);
-
             if (!element) return;
-
             const interval = setInterval(() => {
                 totalSeconds--;
-
                 if (totalSeconds <= 0) {
                     clearInterval(interval);
                     element.textContent = 'LIVE';
@@ -1025,20 +1031,17 @@
                     element.classList.add('bg-green-500');
                     return;
                 }
-
                 const minutes = Math.floor(totalSeconds / 60);
                 const seconds = totalSeconds % 60;
                 element.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
             }, 1000);
         }
-
-        // Start countdowns when page loads
         window.addEventListener('load', function () {
-            startCountdown('countdown-iphone', 2, 45);  // 2:45
-            startCountdown('countdown-sneakers', 5, 30); // 5:30
+            startCountdown('countdown-iphone', 2, 45);
+            startCountdown('countdown-sneakers', 5, 30);
         });
     </script>
-    <script src="auth.js"></script>
+    <script src="auth.js?v=3"></script>
 </body>
 
 </html>

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Business Manager - Moment-A</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { "primary": "#13b6ec", "secondary": "#a855f7" },
+                    fontFamily: { "display": ["Space Grotesk", "sans-serif"], "sans": ["Noto Sans", "sans-serif"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes slow-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .loader-spin { animation: slow-spin 1.5s linear infinite; }
+        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .loader-pulse { animation: pulse-soft 1.5s ease-in-out infinite; }
+        .dashboard-section { display: none; }
+        .dashboard-section.active { display: block; }
+        .sidebar-nav-item.active { background: rgba(19, 182, 236, 0.1); color: #13b6ec; border-right: 2px solid #13b6ec; }
+        .sidebar-me-dropdown-closed { opacity: 0; visibility: hidden; transform: translateY(-4px); pointer-events: none; }
+        #dashboard-me-dropdown { transition: opacity 0.15s, transform 0.15s, visibility 0.15s; }
+        @media (max-width: 767px) {
+            .dashboard-sidebar { transform: translateX(-100%); width: 16rem; }
+            .dashboard-sidebar.open { transform: translateX(0); }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .dashboard-sidebar .sidebar-label { display: none !important; }
+            .dashboard-sidebar .sidebar-logo-text { display: none !important; }
+            .dashboard-sidebar { width: 4rem; }
+        }
+        @media (min-width: 1024px) {
+            .dashboard-sidebar { width: 16rem; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-display text-gray-900 min-h-screen">
+
+    <!-- Mobile hamburger -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-white border-b border-gray-200 flex items-center px-4">
+        <button type="button" id="dashboard-menu-btn" class="p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+            <span class="material-symbols-outlined text-2xl text-gray-700">menu</span>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="dashboard-sidebar" class="dashboard-sidebar fixed left-0 top-0 z-50 h-full w-64 md:w-16 lg:w-64 bg-white border-r border-gray-200 pt-4 pb-4 flex flex-col transition-all duration-300">
+        <div class="pt-16 lg:pt-4 px-4 mb-6 md:px-2 md:flex md:justify-center lg:justify-start">
+            <a href="index.html" class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-white text-xl">all_inclusive</span>
+                </div>
+                <span class="sidebar-logo-text text-xl font-bold text-gray-900">Moment-A</span>
+            </a>
+            <p class="sidebar-label text-xs text-gray-500 mt-1 md:mt-2 md:ml-0 md:text-center lg:text-left lg:ml-0">Business Manager</p>
+        </div>
+        <nav class="flex-1 px-2 space-y-0.5">
+            <button type="button" data-section="dashboard-feed" class="sidebar-nav-item dashboard-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-left transition-colors">
+                <span class="material-symbols-outlined text-xl shrink-0">newspaper</span>
+                <span class="sidebar-label text-sm font-medium">Feed</span>
+            </button>
+            <button type="button" data-section="dashboard-ads" class="sidebar-nav-item dashboard-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-left transition-colors">
+                <span class="material-symbols-outlined text-xl shrink-0">campaign</span>
+                <span class="sidebar-label text-sm font-medium">Anuncios</span>
+            </button>
+            <button type="button" data-section="dashboard-chat" class="sidebar-nav-item dashboard-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-left transition-colors">
+                <span class="material-symbols-outlined text-xl shrink-0">chat</span>
+                <span class="sidebar-label text-sm font-medium">Moment-A Chat</span>
+            </button>
+            <button type="button" data-section="dashboard-notifications" class="sidebar-nav-item dashboard-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-left transition-colors">
+                <span class="material-symbols-outlined text-xl shrink-0">notifications</span>
+                <span class="sidebar-label text-sm font-medium">Notificaciones</span>
+            </button>
+            <button type="button" data-section="dashboard-create" class="sidebar-nav-item dashboard-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-left transition-colors">
+                <span class="material-symbols-outlined text-xl shrink-0">add_circle</span>
+                <span class="sidebar-label text-sm font-medium">Crear Moment-A</span>
+            </button>
+            <button type="button" data-section="dashboard-admin" class="sidebar-nav-item dashboard-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-left transition-colors">
+                <span class="material-symbols-outlined text-xl shrink-0">settings</span>
+                <span class="sidebar-label text-sm font-medium">Administración</span>
+            </button>
+        </nav>
+        <div class="px-2 pt-4 border-t border-gray-100 relative">
+            <button type="button" id="dashboard-me-trigger" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors text-left">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shrink-0">CL</div>
+                <div class="min-w-0 flex-1">
+                    <p class="sidebar-label text-sm font-semibold text-gray-900 truncate" id="dashboard-display-name">CarLifestyle</p>
+                    <p class="sidebar-label text-xs text-gray-500 truncate">Host</p>
+                </div>
+                <span class="material-symbols-outlined text-gray-400 shrink-0">expand_more</span>
+            </button>
+            <div id="dashboard-me-dropdown" class="sidebar-me-dropdown-closed absolute bottom-full left-2 right-2 mb-1 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50">
+                <a href="#" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><span class="material-symbols-outlined text-lg">person</span> View Profile</a>
+                <a href="#" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><span class="material-symbols-outlined text-lg">manage_accounts</span> Manage Account</a>
+                <button type="button" onclick="logOut()" class="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-0 bg-transparent cursor-pointer"><span class="material-symbols-outlined text-lg">logout</span> Sign Out</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <div class="pl-0 md:pl-16 lg:pl-64 min-h-screen flex flex-col pt-16 lg:pt-0">
+        <!-- Top bar -->
+        <header class="h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
+            <p class="text-sm text-gray-600" id="dashboard-breadcrumb">Business Manager / Feed</p>
+            <div class="flex items-center gap-3">
+                <button type="button" class="p-2 rounded-lg hover:bg-gray-100" aria-label="Notifications">
+                    <span class="material-symbols-outlined text-gray-600">notifications</span>
+                </button>
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xs">CL</div>
+            </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="flex-1 p-4 lg:p-6 bg-gray-50">
+            <!-- SECTION: Feed (default) -->
+            <section id="dashboard-feed" class="dashboard-section active">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Your Moment-A's</h1>
+                <p class="text-gray-600 text-sm mb-6">Manage and track your giveaways</p>
+                <div class="flex gap-2 mb-6 border-b border-gray-200 pb-2">
+                    <button type="button" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-700">All</button>
+                    <button type="button" class="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Live</button>
+                    <button type="button" class="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Scheduled</button>
+                    <button type="button" class="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">Completed</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop" alt="Toyota RAV4" class="w-full h-full object-cover" />
+                            <span class="absolute top-3 right-3 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">Live</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-900 mb-1">Toyota RAV4 2024</h3>
+                            <p class="text-sm text-gray-500 mb-2">Win a brand new Toyota RAV4 Hybrid</p>
+                            <p class="text-primary font-semibold text-sm">USD $35,000</p>
+                            <p class="text-xs text-gray-500 mt-1">8,700 participants</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&h=400&fit=crop" alt="PS5" class="w-full h-full object-cover" />
+                            <span class="absolute top-3 right-3 px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">Scheduled</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-900 mb-1">PlayStation 5 Console</h3>
+                            <p class="text-sm text-gray-500 mb-2">PS5 with 2 controllers</p>
+                            <p class="text-primary font-semibold text-sm">USD $549</p>
+                            <p class="text-xs text-gray-500 mt-1">Starts Mar 1, 2026</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=400&fit=crop" alt="Sneakers" class="w-full h-full object-cover" />
+                            <span class="absolute top-3 right-3 px-3 py-1 bg-gray-500 text-white text-xs font-bold rounded-full">Completed</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-900 mb-1">Nike Air Max Limited</h3>
+                            <p class="text-sm text-gray-500 mb-2">Exclusive limited edition</p>
+                            <p class="text-primary font-semibold text-sm">USD $180</p>
+                            <p class="text-xs text-gray-500 mt-1">Ended Feb 10, 2026</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600&h=400&fit=crop" alt="iPhone" class="w-full h-full object-cover" />
+                            <span class="absolute top-3 right-3 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">Live</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-900 mb-1">iPhone 15 Pro Max</h3>
+                            <p class="text-sm text-gray-500 mb-2">256GB Titanium Blue</p>
+                            <p class="text-primary font-semibold text-sm">USD $1,199</p>
+                            <p class="text-xs text-gray-500 mt-1">2,100 participants</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Ads (placeholder) -->
+            <section id="dashboard-ads" class="dashboard-section">
+                <div class="max-w-md mx-auto text-center py-20">
+                    <span class="material-symbols-outlined text-gray-300 text-[64px]">campaign</span>
+                    <h2 class="text-2xl font-bold text-gray-900 mt-4">Promote Your Moment-A's</h2>
+                    <p class="text-gray-600 mt-2">Boost your giveaways with targeted ads to reach more participants. Coming soon.</p>
+                    <button type="button" disabled class="mt-6 px-6 py-3 bg-gray-200 text-gray-500 rounded-xl font-medium cursor-not-allowed">Create Ad Campaign</button>
+                </div>
+            </section>
+
+            <!-- SECTION: Chat (placeholder) -->
+            <section id="dashboard-chat" class="dashboard-section">
+                <div class="max-w-4xl mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[500px]">
+                    <div class="border-b border-gray-200 p-4">
+                        <h2 class="text-lg font-bold text-gray-900">Moment-A Chat</h2>
+                    </div>
+                    <div class="flex flex-1 min-h-0">
+                        <div class="w-72 border-r border-gray-200 overflow-y-auto">
+                            <div class="p-3 border-b border-gray-100 flex items-center gap-3 hover:bg-gray-50 cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?img=52" alt="" class="w-10 h-10 rounded-full" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-sm text-gray-900">SneakerHead</p>
+                                    <p class="text-xs text-gray-500 truncate">Sounds good, let's do it!</p>
+                                </div>
+                                <span class="text-xs text-gray-400">3h</span>
+                            </div>
+                            <div class="p-3 border-b border-gray-100 flex items-center gap-3 hover:bg-gray-50 cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?img=12" alt="" class="w-10 h-10 rounded-full" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-sm text-gray-900">TechGuru</p>
+                                    <p class="text-xs text-gray-500 truncate">When is the next collab?</p>
+                                </div>
+                                <span class="text-xs text-gray-400">1d</span>
+                            </div>
+                            <div class="p-3 border-b border-gray-100 flex items-center gap-3 hover:bg-gray-50 cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?img=68" alt="" class="w-10 h-10 rounded-full" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-sm text-gray-900">Support Team</p>
+                                    <p class="text-xs text-gray-500 truncate">Your verification is complete.</p>
+                                </div>
+                                <span class="text-xs text-gray-400">2d</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 flex flex-col">
+                            <div class="p-4 border-b border-gray-200 flex items-center gap-3">
+                                <img src="https://i.pravatar.cc/150?img=52" alt="" class="w-10 h-10 rounded-full" />
+                                <p class="font-semibold text-gray-900">SneakerHead</p>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <div class="flex justify-start">
+                                    <div class="bg-gray-100 rounded-2xl rounded-bl-none px-4 py-2 max-w-[80%]">
+                                        <p class="text-sm text-gray-800">Hey! Interested in doing a collab for the next Moment-A?</p>
+                                        <p class="text-xs text-gray-500 mt-1">10:32 AM</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end">
+                                    <div class="bg-primary text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[80%]">
+                                        <p class="text-sm">That would be great! What did you have in mind?</p>
+                                        <p class="text-xs text-white/80 mt-1">10:35 AM</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-start">
+                                    <div class="bg-gray-100 rounded-2xl rounded-bl-none px-4 py-2 max-w-[80%]">
+                                        <p class="text-sm text-gray-800">Sounds good, let's do it! I'll send details tomorrow.</p>
+                                        <p class="text-xs text-gray-500 mt-1">10:38 AM</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-gray-200">
+                                <input type="text" placeholder="Chat coming soon..." disabled class="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 text-gray-500 cursor-not-allowed" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Notifications (placeholder) -->
+            <section id="dashboard-notifications" class="dashboard-section">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Notificaciones</h2>
+                <div class="space-y-0 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="flex gap-4 p-4 border-b border-gray-100 bg-primary/5">
+                        <span class="material-symbols-outlined text-primary text-2xl shrink-0">celebration</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">New participant joined your Toyota RAV4 giveaway</p>
+                            <p class="text-xs text-gray-500 mt-0.5">2 min ago</p>
+                        </div>
+                        <span class="w-2 h-2 rounded-full bg-primary shrink-0 mt-2"></span>
+                    </div>
+                    <div class="flex gap-4 p-4 border-b border-gray-100">
+                        <span class="material-symbols-outlined text-gray-500 text-2xl shrink-0">assignment_turned_in</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">Your host application was approved</p>
+                            <p class="text-xs text-gray-500 mt-0.5">1 hour ago</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 border-b border-gray-100 bg-primary/5">
+                        <span class="material-symbols-outlined text-primary text-2xl shrink-0">chat</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">New message from @SneakerHead</p>
+                            <p class="text-xs text-gray-500 mt-0.5">3 hours ago</p>
+                        </div>
+                        <span class="w-2 h-2 rounded-full bg-primary shrink-0 mt-2"></span>
+                    </div>
+                    <div class="flex gap-4 p-4 border-b border-gray-100">
+                        <span class="material-symbols-outlined text-gray-500 text-2xl shrink-0">insights</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">Your Moment-A reached 500 participants</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Yesterday</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 border-b border-gray-100">
+                        <span class="material-symbols-outlined text-gray-500 text-2xl shrink-0">verified</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">Prize verification completed</p>
+                            <p class="text-xs text-gray-500 mt-0.5">2 days ago</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4">
+                        <span class="material-symbols-outlined text-gray-500 text-2xl shrink-0">schedule</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">Reminder: Toyota RAV4 giveaway starts in 24 hours</p>
+                            <p class="text-xs text-gray-500 mt-0.5">2 days ago</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Create Moment-A (functional) -->
+            <section id="dashboard-create" class="dashboard-section">
+                <div id="dashboard-create-form-wrap">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Crear Moment-A</h2>
+
+                    <!-- Step 1: Moment-A Details -->
+                    <div id="dashboard-create-step1" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Moment-A Details</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="dashboard-title" class="block text-sm font-medium text-gray-700 mb-1">Moment-A Title</label>
+                                <input type="text" id="dashboard-title" required placeholder="e.g., Win a Toyota RAV4 2024!" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div>
+                                <label for="dashboard-prize-desc" class="block text-sm font-medium text-gray-700 mb-1">Prize Description</label>
+                                <textarea id="dashboard-prize-desc" required rows="3" placeholder="Describe the prize in detail — what it is, condition, estimated value..." class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="dashboard-category" class="block text-sm font-medium text-gray-700 mb-1">Prize Category</label>
+                                    <select id="dashboard-category" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                                        <option value="">Select</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Automotive">Automotive</option>
+                                        <option value="Fashion">Fashion</option>
+                                        <option value="Travel">Travel</option>
+                                        <option value="Gaming">Gaming</option>
+                                        <option value="Beauty">Beauty</option>
+                                        <option value="Sports">Sports</option>
+                                        <option value="Home">Home</option>
+                                        <option value="Cash/Gift Cards">Cash/Gift Cards</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="dashboard-value" class="block text-sm font-medium text-gray-700 mb-1">Estimated Prize Value (USD $)</label>
+                                    <input type="number" id="dashboard-value" required min="0" step="0.01" placeholder="0.00" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Prize Condition</label>
+                                <div class="flex flex-wrap gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="dashboard-condition" value="Brand New" required class="accent-primary" /> <span class="text-sm text-gray-700">Brand New</span></label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="dashboard-condition" value="Like New" class="accent-primary" /> <span class="text-sm text-gray-700">Like New</span></label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="dashboard-condition" value="Used - Good Condition" class="accent-primary" /> <span class="text-sm text-gray-700">Used - Good Condition</span></label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dashboard-cover-url" class="block text-sm font-medium text-gray-700 mb-1">Cover Image URL</label>
+                                <input type="url" id="dashboard-cover-url" placeholder="https://... link to the prize image" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Giveaway Type</label>
+                                <div class="flex flex-wrap gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="dashboard-type" value="Color Elimination" required class="accent-primary" /> <span class="text-sm text-gray-700">Color Elimination</span></label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="dashboard-type" value="Random Draw" class="accent-primary" /> <span class="text-sm text-gray-700">Random Draw</span></label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="dashboard-type" value="Quiz-based" class="accent-primary" /> <span class="text-sm text-gray-700">Quiz-based</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="dashboard-create-next1" class="mt-6 px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Continue →</button>
+                    </div>
+
+                    <!-- Step 2: Configuration -->
+                    <div id="dashboard-create-step2" style="display:none" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Configuration</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="dashboard-max-participants" class="block text-sm font-medium text-gray-700 mb-1">Maximum Participants</label>
+                                <select id="dashboard-max-participants" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                    <option value="1000">1,000</option>
+                                    <option value="5000">5,000</option>
+                                    <option value="10000">10,000</option>
+                                    <option value="unlimited">Unlimited</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="dashboard-entry-fee" class="block text-sm font-medium text-gray-700 mb-1">Entry Fee per participant (USD $)</label>
+                                <input type="number" id="dashboard-entry-fee" required min="0" step="0.01" placeholder="e.g., 5.00" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="dashboard-start-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                    <input type="date" id="dashboard-start-date" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary" />
+                                </div>
+                                <div>
+                                    <label for="dashboard-start-time" class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                    <input type="time" id="dashboard-start-time" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary" />
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dashboard-duration" class="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                                <select id="dashboard-duration" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="120">2 hours</option>
+                                    <option value="1440">24 hours</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="dashboard-promo-msg" class="block text-sm font-medium text-gray-700 mb-1">Promotion Message (optional)</label>
+                                <textarea id="dashboard-promo-msg" rows="2" placeholder="Custom message shown to participants before the Moment-A starts..." class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary"></textarea>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="dashboard-auto-publish" checked class="accent-primary w-5 h-5 rounded" />
+                                <label for="dashboard-auto-publish" class="text-sm font-medium text-gray-700">Auto-publish to Feed?</label>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" id="dashboard-create-back2" class="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition">← Back</button>
+                            <button type="button" id="dashboard-create-next2" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Continue →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Review & Publish -->
+                    <div id="dashboard-create-step3" style="display:none" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Review & Publish</h3>
+                        <div id="dashboard-create-review" class="space-y-4 mb-6"></div>
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 mb-6">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Preview</p>
+                            <div id="dashboard-create-preview" class="rounded-xl overflow-hidden border border-gray-200 bg-white max-w-sm"></div>
+                        </div>
+                        <label class="flex items-start gap-3 cursor-pointer mb-6">
+                            <input type="checkbox" id="dashboard-confirm-prize" required class="mt-1 accent-primary w-5 h-5 rounded" />
+                            <span class="text-sm text-gray-700">I confirm that the prize is real and I will fulfill the delivery to the winner.</span>
+                        </label>
+                        <div class="flex gap-4">
+                            <button type="button" id="dashboard-create-back3" class="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition">← Back</button>
+                            <button type="button" id="dashboard-create-publish" class="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition text-lg">Publish Moment-A</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create: Loader -->
+                <div id="dashboard-create-loader" style="display:none" class="max-w-sm mx-auto text-center py-20">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center loader-spin">
+                        <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                    </div>
+                    <p class="text-gray-500 text-sm loader-pulse">Publishing your Moment-A...</p>
+                </div>
+
+                <!-- Create: Success -->
+                <div id="dashboard-create-success" style="display:none" class="max-w-md mx-auto text-center py-16 bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+                    <span class="material-symbols-outlined text-green-500 text-5xl mb-4">check_circle</span>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Moment-A Published!</h2>
+                    <p class="text-gray-600 text-sm mb-4">Your giveaway is now live. Participants can find it in the Explore feed.</p>
+                    <p class="text-primary font-mono font-semibold mb-6" id="dashboard-created-id"></p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button type="button" id="dashboard-create-another" class="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition">Create Another</button>
+                        <button type="button" id="dashboard-go-to-feed" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Go to Feed</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Admin (placeholder) -->
+            <section id="dashboard-admin" class="dashboard-section">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Administración</h2>
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Account Info</h3>
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <dt class="text-gray-500">Display name</dt>
+                            <dd class="font-medium text-gray-900" id="dashboard-admin-displayname">CarLifestyle</dd>
+                            <dt class="text-gray-500">Email</dt>
+                            <dd class="font-medium text-gray-900" id="dashboard-admin-email">host@momenta.com</dd>
+                            <dt class="text-gray-500">Phone</dt>
+                            <dd class="font-medium text-gray-900" id="dashboard-admin-phone">+51 999 000 001</dd>
+                            <dt class="text-gray-500">DNI</dt>
+                            <dd class="font-medium text-gray-900" id="dashboard-admin-dni">72188820</dd>
+                        </dl>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Payout Settings</h3>
+                        <p class="text-sm text-gray-600">Bank account: ****4521</p>
+                        <span class="inline-flex items-center gap-1 mt-2 px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full"><span class="material-symbols-outlined text-sm">verified</span> Verified</span>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Verification Status</h3>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full"><span class="material-symbols-outlined text-lg">verified</span> Verified Host</span>
+                        <p class="text-xs text-gray-500 mt-2">Verified on Jan 15, 2026</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Plan</h3>
+                        <p class="text-gray-900 font-medium">Moment-A Host Pro</p>
+                        <p class="text-sm text-gray-500 mt-1">Active giveaways: <span class="font-semibold text-gray-900">3</span> / 10</p>
+                        <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-primary to-secondary rounded-full" style="width: 30%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            var BREADCRUMBS = {
+                'dashboard-feed': 'Business Manager / Feed',
+                'dashboard-ads': 'Business Manager / Anuncios',
+                'dashboard-chat': 'Business Manager / Moment-A Chat',
+                'dashboard-notifications': 'Business Manager / Notificaciones',
+                'dashboard-create': 'Business Manager / Crear Moment-A',
+                'dashboard-admin': 'Business Manager / Administración'
+            };
+
+            function getCurrentUser() {
+                try {
+                    var data = localStorage.getItem('momentA_currentUser');
+                    return data ? JSON.parse(data) : null;
+                } catch (e) { return null; }
+            }
+
+            function showSection(sectionId) {
+                document.querySelectorAll('.dashboard-section').forEach(function (el) {
+                    el.classList.remove('active');
+                });
+                document.querySelectorAll('.sidebar-nav-item').forEach(function (el) {
+                    el.classList.remove('active');
+                });
+                var section = document.getElementById(sectionId);
+                if (section) section.classList.add('active');
+                var btn = document.querySelector('[data-section="' + sectionId + '"]');
+                if (btn) btn.classList.add('active');
+                var breadcrumb = document.getElementById('dashboard-breadcrumb');
+                if (breadcrumb && BREADCRUMBS[sectionId]) breadcrumb.textContent = BREADCRUMBS[sectionId];
+                var sidebar = document.getElementById('dashboard-sidebar');
+                if (sidebar && window.innerWidth < 1024) sidebar.classList.remove('open');
+            }
+
+            function initAuthGuard() {
+                var user = getCurrentUser();
+                if (!user || user.role !== 'host') {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                var displayName = user.displayName || 'CarLifestyle';
+                var displayNameEl = document.getElementById('dashboard-display-name');
+                if (displayNameEl) displayNameEl.textContent = displayName;
+                var adminNameEl = document.getElementById('dashboard-admin-displayname');
+                if (adminNameEl) adminNameEl.textContent = displayName;
+                var emailEl = document.getElementById('dashboard-admin-email');
+                if (emailEl && user.email) emailEl.textContent = user.email;
+                var phoneEl = document.getElementById('dashboard-admin-phone');
+                if (phoneEl && user.phone) phoneEl.textContent = user.phone;
+                var dniEl = document.getElementById('dashboard-admin-dni');
+                if (dniEl && user.dni) dniEl.textContent = user.dni;
+            }
+
+            function initNav() {
+                document.querySelectorAll('.dashboard-nav-item').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = btn.getAttribute('data-section');
+                        if (id) showSection(id);
+                    });
+                });
+                document.getElementById('dashboard-menu-btn').addEventListener('click', function () {
+                    document.getElementById('dashboard-sidebar').classList.toggle('open');
+                });
+                var meTrigger = document.getElementById('dashboard-me-trigger');
+                var meDropdown = document.getElementById('dashboard-me-dropdown');
+                if (meTrigger && meDropdown) {
+                    meTrigger.addEventListener('click', function () {
+                        meDropdown.classList.toggle('sidebar-me-dropdown-closed');
+                    });
+                    document.addEventListener('click', function (e) {
+                        if (!meTrigger.contains(e.target) && !meDropdown.contains(e.target)) {
+                            meDropdown.classList.add('sidebar-me-dropdown-closed');
+                        }
+                    });
+                }
+            }
+
+            function getVal(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+            function getRadio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+
+            function buildCreateReview() {
+                var html = '';
+                html += '<div class="rounded-xl border border-gray-200 p-4"><h4 class="font-semibold text-gray-900 mb-2">Details</h4><p class="text-sm text-gray-500">Title: <span class="text-gray-900 font-medium">' + getVal('dashboard-title') + '</span></p><p class="text-sm text-gray-500">Category: ' + getVal('dashboard-category') + '</p><p class="text-sm text-gray-500">Value: USD $' + getVal('dashboard-value') + '</p><p class="text-sm text-gray-500">Condition: ' + getRadio('dashboard-condition') + '</p><p class="text-sm text-gray-500">Type: ' + getRadio('dashboard-type') + '</p><button type="button" class="text-primary text-sm hover:underline mt-1" data-goto="1">Edit</button></div>';
+                html += '<div class="rounded-xl border border-gray-200 p-4"><h4 class="font-semibold text-gray-900 mb-2">Configuration</h4><p class="text-sm text-gray-500">Max participants: ' + (getVal('dashboard-max-participants') || '—') + '</p><p class="text-sm text-gray-500">Entry fee: USD $' + getVal('dashboard-entry-fee') + '</p><p class="text-sm text-gray-500">Start: ' + getVal('dashboard-start-date') + ' ' + getVal('dashboard-start-time') + '</p><p class="text-sm text-gray-500">Duration: ' + (document.getElementById('dashboard-duration').options[document.getElementById('dashboard-duration').selectedIndex].text) + '</p><button type="button" class="text-primary text-sm hover:underline mt-1" data-goto="2">Edit</button></div>';
+                document.getElementById('dashboard-create-review').innerHTML = html;
+                document.getElementById('dashboard-create-review').querySelectorAll('[data-goto]').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        var step = parseInt(b.getAttribute('data-goto'), 10);
+                        document.getElementById('dashboard-create-step1').style.display = step === 1 ? 'block' : 'none';
+                        document.getElementById('dashboard-create-step2').style.display = step === 2 ? 'block' : 'none';
+                        document.getElementById('dashboard-create-step3').style.display = 'none';
+                    });
+                });
+                var imgUrl = getVal('dashboard-cover-url') || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop';
+                var preview = '<div class="relative"><img src="' + imgUrl + '" alt="" class="w-full h-48 object-cover" onerror="this.src=\'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop\'" /><span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full">Live</span></div><div class="p-4"><p class="font-semibold text-gray-900">' + (getVal('dashboard-title') || 'Moment-A') + '</p><p class="text-primary font-semibold text-sm">USD $' + getVal('dashboard-value') + '</p><p class="text-xs text-gray-500">@CarLifestyle</p><p class="text-xs text-gray-500">' + getVal('dashboard-start-date') + '</p></div>';
+                document.getElementById('dashboard-create-preview').innerHTML = preview;
+            }
+
+            function resetCreateForm() {
+                document.getElementById('dashboard-create-form-wrap').style.display = 'block';
+                document.getElementById('dashboard-create-loader').style.display = 'none';
+                document.getElementById('dashboard-create-success').style.display = 'none';
+                document.getElementById('dashboard-create-step1').style.display = 'block';
+                document.getElementById('dashboard-create-step2').style.display = 'none';
+                document.getElementById('dashboard-create-step3').style.display = 'none';
+                document.getElementById('dashboard-title').value = '';
+                document.getElementById('dashboard-prize-desc').value = '';
+                document.getElementById('dashboard-category').value = '';
+                document.getElementById('dashboard-value').value = '';
+                document.getElementById('dashboard-cover-url').value = '';
+                document.getElementById('dashboard-entry-fee').value = '';
+                document.getElementById('dashboard-start-date').value = '';
+                document.getElementById('dashboard-start-time').value = '';
+                document.getElementById('dashboard-promo-msg').value = '';
+                document.getElementById('dashboard-confirm-prize').checked = false;
+            }
+
+            function initCreateForm() {
+                document.getElementById('dashboard-create-next1').addEventListener('click', function () {
+                    if (!document.getElementById('dashboard-title').value.trim() || !document.getElementById('dashboard-prize-desc').value.trim() || !document.getElementById('dashboard-category').value || !document.getElementById('dashboard-value').value.trim()) {
+                        alert('Please fill in all required fields (Title, Prize Description, Category, Value).');
+                        return;
+                    }
+                    if (!getRadio('dashboard-condition') || !getRadio('dashboard-type')) {
+                        alert('Please select Prize Condition and Giveaway Type.');
+                        return;
+                    }
+                    document.getElementById('dashboard-create-step1').style.display = 'none';
+                    document.getElementById('dashboard-create-step2').style.display = 'block';
+                });
+                document.getElementById('dashboard-create-back2').addEventListener('click', function () {
+                    document.getElementById('dashboard-create-step2').style.display = 'none';
+                    document.getElementById('dashboard-create-step1').style.display = 'block';
+                });
+                document.getElementById('dashboard-create-next2').addEventListener('click', function () {
+                    if (!document.getElementById('dashboard-entry-fee').value.trim() || !document.getElementById('dashboard-start-date').value || !document.getElementById('dashboard-start-time').value) {
+                        alert('Please fill in Entry Fee, Start Date, and Start Time.');
+                        return;
+                    }
+                    buildCreateReview();
+                    document.getElementById('dashboard-create-step2').style.display = 'none';
+                    document.getElementById('dashboard-create-step3').style.display = 'block';
+                });
+                document.getElementById('dashboard-create-back3').addEventListener('click', function () {
+                    document.getElementById('dashboard-create-step3').style.display = 'none';
+                    document.getElementById('dashboard-create-step2').style.display = 'block';
+                });
+                document.getElementById('dashboard-create-publish').addEventListener('click', function () {
+                    if (!document.getElementById('dashboard-confirm-prize').checked) {
+                        alert('Please confirm that the prize is real and you will fulfill delivery.');
+                        return;
+                    }
+                    var formWrap = document.getElementById('dashboard-create-form-wrap');
+                    var loader = document.getElementById('dashboard-create-loader');
+                    var success = document.getElementById('dashboard-create-success');
+                    formWrap.style.display = 'none';
+                    loader.style.display = 'block';
+                    success.style.display = 'none';
+                    var momentId = 'MA-2026-' + Math.floor(1000 + Math.random() * 9000);
+                    var payload = {
+                        id: momentId,
+                        title: getVal('dashboard-title'),
+                        prizeDesc: getVal('dashboard-prize-desc'),
+                        category: getVal('dashboard-category'),
+                        value: getVal('dashboard-value'),
+                        condition: getRadio('dashboard-condition'),
+                        type: getRadio('dashboard-type'),
+                        coverUrl: getVal('dashboard-cover-url'),
+                        maxParticipants: getVal('dashboard-max-participants'),
+                        entryFee: getVal('dashboard-entry-fee'),
+                        startDate: getVal('dashboard-start-date'),
+                        startTime: getVal('dashboard-start-time'),
+                        duration: document.getElementById('dashboard-duration').value,
+                        promoMsg: getVal('dashboard-promo-msg'),
+                        autoPublish: document.getElementById('dashboard-auto-publish').checked,
+                        createdAt: new Date().toISOString()
+                    };
+                    try {
+                        var stored = JSON.parse(localStorage.getItem('momentA_createdMoments') || '[]');
+                        stored.push(payload);
+                        localStorage.setItem('momentA_createdMoments', JSON.stringify(stored));
+                    } catch (e) {}
+                    setTimeout(function () {
+                        loader.style.display = 'none';
+                        success.style.display = 'block';
+                        document.getElementById('dashboard-created-id').textContent = momentId;
+                    }, 2000);
+                });
+                document.getElementById('dashboard-create-another').addEventListener('click', function () {
+                    resetCreateForm();
+                });
+                document.getElementById('dashboard-go-to-feed').addEventListener('click', function () {
+                    resetCreateForm();
+                    showSection('dashboard-feed');
+                });
+            }
+
+            initAuthGuard();
+            initNav();
+            initCreateForm();
+            showSection('dashboard-feed');
+        })();
+    </script>
+    <script src="auth.js?v=3"></script>
+</body>
+</html>

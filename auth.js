@@ -1,14 +1,19 @@
 /**
  * Moment-A Auth - Demo auth with localStorage
  * Sign Up: DNI, phone, email → OTP (code) → 6-digit PIN
- * Login: phone/email + 6-digit PIN
+ * Login: DNI + 6-digit PIN
  * Display username: abc123 when logged in
+ *
+ * DEMO RESET: To reset all demo data, run in browser console:
+ * localStorage.clear(); localStorage.setItem('momentA_users', JSON.stringify([{dni:"72188813",phone:"+51 999 000 000",email:"demo@momenta.com",pin:"123456",role:"entrant",displayName:"abc123"},{dni:"72188820",phone:"+51 999 000 001",email:"host@momenta.com",pin:"123456",role:"host",displayName:"CarLifestyle"}])); location.reload();
  */
 
 const STORAGE_KEY_USERS = 'momentA_users';
 const STORAGE_KEY_CURRENT = 'momentA_currentUser';
 const DISPLAY_USERNAME = 'abc123';
 const VALID_OTP = '111111'; // Demo OTP for testing
+
+// Roles: "entrant" = regular user (default for Sign Up), "host" = creator with Business Manager access
 
 let signupTempData = null;
 
@@ -28,19 +33,7 @@ function saveUsers(users) {
 function getCurrentUser() {
     try {
         const data = localStorage.getItem(STORAGE_KEY_CURRENT);
-        const user = data ? JSON.parse(data) : null;
-        if (!user) return null;
-        // Solo considerar logueado si el usuario sigue existiendo en la lista
-        const users = getUsers();
-        const exists = users.some(u =>
-            (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()) ||
-            (u.phone && user.phone && u.phone === user.phone)
-        );
-        if (!exists) {
-            setCurrentUser(null); // limpiar sesión inválida
-            return null;
-        }
-        return user;
+        return data ? JSON.parse(data) : null;
     } catch (e) {
         return null;
     }
@@ -53,6 +46,61 @@ function setCurrentUser(user) {
         localStorage.removeItem(STORAGE_KEY_CURRENT);
     }
 }
+
+function seedDemoAccount() {
+    let users = [];
+    try {
+        const data = localStorage.getItem(STORAGE_KEY_USERS);
+        users = data ? JSON.parse(data) : [];
+    } catch (e) {
+        users = [];
+    }
+    let changed = false;
+    // Account 1 — Entrant
+    const entrant = users.find(u => u.dni === '72188813');
+    if (!entrant) {
+        users.push({
+            dni: '72188813',
+            phone: '+51 999 000 000',
+            email: 'demo@momenta.com',
+            pin: '123456',
+            role: 'entrant',
+            displayName: 'abc123'
+        });
+        changed = true;
+    } else {
+        if (entrant.role === undefined) { entrant.role = 'entrant'; changed = true; }
+        if (entrant.displayName === undefined) { entrant.displayName = 'abc123'; changed = true; }
+    }
+    // Account 2 — Host
+    const host = users.find(u => u.dni === '72188820');
+    if (!host) {
+        users.push({
+            dni: '72188820',
+            phone: '+51 999 000 001',
+            email: 'host@momenta.com',
+            pin: '123456',
+            role: 'host',
+            displayName: 'CarLifestyle'
+        });
+        changed = true;
+    } else {
+        if (host.role === undefined) { host.role = 'host'; changed = true; }
+        if (host.displayName === undefined) { host.displayName = 'CarLifestyle'; changed = true; }
+    }
+    if (changed) {
+        try {
+            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+        } catch (err) { /* ignore */ }
+    }
+    // Debug: verify both accounts exist (remove or comment out after confirming)
+    try {
+        var stored = localStorage.getItem(STORAGE_KEY_USERS);
+        console.log('[Moment-A auth] momentA_users after seed:', stored ? JSON.parse(stored) : []);
+    } catch (e) { console.log('[Moment-A auth] momentA_users:', []); }
+}
+
+seedDemoAccount();
 
 function openModal(modalId, event) {
     const modal = document.getElementById(modalId);
@@ -78,14 +126,15 @@ function closeModal(modalId) {
 }
 
 function openEnterModal(event) {
-    if (getCurrentUser() && typeof window.openTierSelectionModal === 'function') {
-        window.openTierSelectionModal(event);
-        return;
-    }
+    // Used when handleEnterMomentA(hostId) determined user is not logged in.
+    // Just open the login modal; after login, handleEnterMomentA(pendingHostId) will run.
+    var m = document.getElementById('enterRequiredModal');
+    if (m) m.setAttribute('data-login-state', 'form');
     openModal('enterRequiredModal', event);
 }
 
 function closeEnterModal() {
+    resetLoginForm('enterRequiredModal');
     closeModal('enterRequiredModal');
 }
 
@@ -108,10 +157,13 @@ function closeSignUpModal() {
 }
 
 function openLogInModal(event) {
+    var m = document.getElementById('logInModal');
+    if (m) m.setAttribute('data-login-state', 'form');
     openModal('logInModal', event);
 }
 
 function closeLogInModal() {
+    resetLoginForm('logInModal');
     closeModal('logInModal');
 }
 
@@ -196,23 +248,15 @@ function handleSignUpStep3() {
         dni: signupTempData.dni,
         phone: signupTempData.phone,
         email: signupTempData.email,
-        pin: pin
+        pin: pin,
+        role: 'entrant',
+        displayName: DISPLAY_USERNAME
     };
     users.push(newUser);
     saveUsers(users);
-    setCurrentUser({ displayName: DISPLAY_USERNAME, email: newUser.email, phone: newUser.phone });
+    setCurrentUser({ displayName: DISPLAY_USERNAME, email: newUser.email, phone: newUser.phone, dni: newUser.dni, role: 'entrant' });
     signupTempData = null;
-
-    var loaderEl = document.getElementById('signUpLoaderOverlay');
-    if (loaderEl) {
-        loaderEl.classList.add('active');
-        setTimeout(function () {
-            loaderEl.classList.remove('active');
-            showSignUpStep(4);
-        }, 2000);
-    } else {
-        showSignUpStep(4);
-    }
+    showSignUpStep(4);
 }
 
 function handleSignUpStep4OK() {
@@ -220,32 +264,134 @@ function handleSignUpStep4OK() {
     updateNavForAuth();
 }
 
-// Login: phone or email + 6-digit PIN
-function doLogin(identifier, pin, modalId, successMessage) {
-    if (!identifier || !pin) {
-        alert('Please enter your phone/email and 6-digit PIN.');
+// Login: DNI + PIN — loader 1.5s → welcome 1s → fade-out 0.5s → close (no X, no click-outside during loader/welcome)
+function showLoginLoader(modalId) {
+    const isEnter = modalId === 'enterRequiredModal';
+    const modal = document.getElementById(modalId);
+    const formContent = document.getElementById(isEnter ? 'enterLoginFormContent' : 'loginFormContent');
+    const loader = document.getElementById(isEnter ? 'enterLoginLoader' : 'loginLoader');
+    const welcome = document.getElementById(isEnter ? 'enterLoginWelcome' : 'loginWelcome');
+    if (modal) modal.setAttribute('data-login-state', 'loader');
+    const closeWrap = modal ? modal.querySelector('.login-modal-close-wrap') : null;
+    if (closeWrap) closeWrap.style.display = 'none';
+    if (formContent) formContent.style.display = 'none';
+    if (welcome) {
+        welcome.style.display = 'none';
+        welcome.classList.add('hidden');
+        welcome.classList.remove('welcome-fade-out');
+    }
+    if (loader) {
+        loader.style.display = 'flex';
+        loader.classList.remove('hidden');
+    }
+}
+
+function showLoginWelcome(modalId, user) {
+    const isEnter = modalId === 'enterRequiredModal';
+    const modal = document.getElementById(modalId);
+    const loader = document.getElementById(isEnter ? 'enterLoginLoader' : 'loginLoader');
+    const welcome = document.getElementById(isEnter ? 'enterLoginWelcome' : 'loginWelcome');
+    if (modal) modal.setAttribute('data-login-state', 'welcome');
+    if (loader) {
+        loader.style.display = 'none';
+        loader.classList.add('hidden');
+    }
+    if (welcome) {
+        const h2 = welcome.querySelector('h2');
+        const sub = welcome.querySelector('p');
+        if (user && user.role === 'host') {
+            if (h2) h2.textContent = 'Welcome back, ' + (user.displayName || 'CarLifestyle') + '!';
+            if (sub) sub.textContent = 'Redirecting to your Business Manager...';
+        } else {
+            if (h2) h2.textContent = 'Welcome back!';
+            if (sub) sub.textContent = (isEnter ? "You're all set. You can now participate in this Moment-A." : "You're all set. Let's find your next Moment-A.");
+        }
+        welcome.classList.remove('welcome-fade-out');
+        welcome.style.display = 'flex';
+        welcome.classList.remove('hidden');
+    }
+}
+
+function resetLoginForm(modalId) {
+    const isEnter = modalId === 'enterRequiredModal';
+    const modal = document.getElementById(modalId);
+    const formContent = document.getElementById(isEnter ? 'enterLoginFormContent' : 'loginFormContent');
+    const loader = document.getElementById(isEnter ? 'enterLoginLoader' : 'loginLoader');
+    const welcome = document.getElementById(isEnter ? 'enterLoginWelcome' : 'loginWelcome');
+    if (modal) modal.setAttribute('data-login-state', 'form');
+    const closeWrap = modal ? modal.querySelector('.login-modal-close-wrap') : null;
+    if (closeWrap) closeWrap.style.display = '';
+    if (formContent) formContent.style.display = '';
+    if (loader) {
+        loader.style.display = 'none';
+        loader.classList.add('hidden');
+    }
+    if (welcome) {
+        welcome.style.display = 'none';
+        welcome.classList.add('hidden');
+        welcome.classList.remove('welcome-fade-out');
+    }
+    const form = document.getElementById(isEnter ? 'enterLoginForm' : 'logInForm');
+    if (form) form.reset();
+}
+
+function doLogin(dni, pin, modalId, successMessage) {
+    if (dni === undefined || dni === null || pin === undefined || pin === null) {
+        alert('Please enter your DNI and 6-digit PIN.');
         return;
     }
-    if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+    var dniTrim = String(dni).trim();
+    var pinTrim = String(pin).trim();
+    if (!dniTrim || !pinTrim) {
+        alert('Please enter your DNI and 6-digit PIN.');
+        return;
+    }
+    if (pinTrim.length !== 6 || !/^\d{6}$/.test(pinTrim)) {
         alert('Please enter a valid 6-digit PIN.');
         return;
     }
 
     const users = getUsers();
-    const id = identifier.trim().toLowerCase();
-    const user = users.find(u =>
-        (u.email && u.email.toLowerCase() === id) || u.phone === identifier.trim()
-    );
+    const user = users.find(function (u) {
+        return String(u.dni).trim() === dniTrim && String(u.pin).trim() === pinTrim;
+    });
 
-    if (!user || user.pin !== pin) {
+    if (!user) {
         alert('Invalid credentials. Please try again.');
         return;
     }
 
-    setCurrentUser({ displayName: DISPLAY_USERNAME, email: user.email, phone: user.phone });
-    alert(successMessage);
-    closeModal(modalId);
-    updateNavForAuth();
+    var userRole = user.role || 'entrant';
+    setCurrentUser({
+        displayName: user.displayName || (userRole === 'host' ? 'CarLifestyle' : DISPLAY_USERNAME),
+        email: user.email,
+        phone: user.phone,
+        dni: user.dni,
+        role: userRole
+    });
+
+    var redirectTarget = (userRole === 'host') ? 'host-dashboard.html' : 'hosts.html';
+
+    // Step 1: Show loader immediately
+    showLoginLoader(modalId);
+
+    // Step 2: After 1.5s, swap loader for welcome message
+    setTimeout(function () {
+        showLoginWelcome(modalId, user);
+
+        // Step 3: After 1s, start fade-out animation
+        setTimeout(function () {
+            var welcomeEl = document.getElementById(modalId === 'enterRequiredModal' ? 'enterLoginWelcome' : 'loginWelcome');
+            if (welcomeEl) welcomeEl.classList.add('welcome-fade-out');
+
+            // Step 4: After 0.5s fade completes, redirect
+            setTimeout(function () {
+                window.location.href = redirectTarget;
+            }, 500);
+
+        }, 1000);
+
+    }, 1500);
 }
 
 function initSignUpForm() {
@@ -287,9 +433,9 @@ function initEnterLoginForm() {
     if (!form) return;
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-        const identifier = document.getElementById('enter-identifier')?.value;
+        const dni = document.getElementById('enter-dni')?.value;
         const pin = document.getElementById('enter-pin')?.value;
-        doLogin(identifier, pin, 'enterRequiredModal', 'Welcome back! You can now participate in this Moment-A.');
+        doLogin(dni, pin, 'enterRequiredModal', 'Welcome back! You can now participate in this Moment-A.');
         form.reset();
     });
 }
@@ -299,34 +445,68 @@ function initLogInForm() {
     if (!form) return;
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-        const identifier = document.getElementById('login-identifier')?.value;
+        const dni = document.getElementById('login-dni')?.value;
         const pin = document.getElementById('login-pin')?.value;
-        doLogin(identifier, pin, 'logInModal', 'Welcome back to Moment-A!');
+        doLogin(dni, pin, 'logInModal', 'Welcome back to Moment-A!');
         form.reset();
     });
 }
 
-function logout() {
-    setCurrentUser(null);
-    updateNavForAuth();
-}
-
 function updateNavForAuth() {
-    const current = getCurrentUser();
-    const isLoggedIn = !!current;
+    const cur = getCurrentUser();
+    const isLoggedIn = !!cur;
     const guestEl = document.getElementById('nav-guest');
     const userEl = document.getElementById('nav-user');
-    // Deslogueado: mostrar "Become a host", "Log in", "Sign Up". Ocultar abc123 y Log out.
-    if (guestEl) guestEl.style.display = isLoggedIn ? 'none' : 'flex';
+    if (guestEl) guestEl.style.display = isLoggedIn ? 'none' : '';
     if (userEl) {
-        userEl.style.display = isLoggedIn ? 'flex' : 'none';
+        userEl.style.display = isLoggedIn ? '' : 'none';
+        const displayName = (cur && cur.displayName) ? cur.displayName : DISPLAY_USERNAME;
         const nameEl = userEl.querySelector('[data-username]');
-        if (nameEl) nameEl.textContent = (current && current.displayName) || DISPLAY_USERNAME;
+        if (nameEl) nameEl.textContent = displayName;
+        const dropdownLabel = userEl.querySelector('[data-dropdown-username]');
+        if (dropdownLabel) dropdownLabel.textContent = displayName;
+        const secondaryEl = userEl.querySelector('[data-dropdown-secondary]');
+        if (secondaryEl) secondaryEl.textContent = (cur && (cur.email || cur.dni)) ? (cur.email || cur.dni) : '';
+        const bizLink = document.getElementById('nav-dropdown-business-manager');
+        if (bizLink) bizLink.style.display = (cur && cur.role === 'host') ? '' : 'none';
     }
-    // Actualizar badge de oportunidades en profile (solo visible si logueado + suscrito)
-    if (typeof window.updateProfileOpportunitiesUI === 'function') {
-        window.updateProfileOpportunitiesUI();
+}
+
+function closeUserDropdown() {
+    const d = document.getElementById('nav-user-dropdown');
+    const trigger = document.querySelector('#nav-user [data-dropdown-trigger]');
+    if (d) {
+        d.classList.add('nav-user-dropdown-closed');
     }
+    if (trigger) trigger.classList.remove('nav-user-dropdown-open');
+}
+
+function toggleUserDropdown(event) {
+    if (event) event.stopPropagation();
+    const d = document.getElementById('nav-user-dropdown');
+    const trigger = document.querySelector('#nav-user [data-dropdown-trigger]');
+    if (!d) return;
+    d.classList.toggle('nav-user-dropdown-closed');
+    if (trigger) trigger.classList.toggle('nav-user-dropdown-open');
+}
+
+function logOut() {
+    // Save users before clearing (so demo accounts persist)
+    const users = localStorage.getItem('momentA_users');
+
+    // Clear everything — removes subscriptions, currentUser, etc.
+    localStorage.clear();
+
+    // Restore only the users array
+    if (users) {
+        localStorage.setItem('momentA_users', users);
+    }
+
+    // Re-seed demo accounts in case they were affected
+    seedDemoAccount();
+
+    // Force full page reload — clears ALL in-memory JavaScript (e.g. momenta-flow.js state)
+    window.location.href = 'index.html';
 }
 
 function initModalCloseHandlers() {
@@ -334,18 +514,41 @@ function initModalCloseHandlers() {
         const modal = document.getElementById(id);
         if (modal) {
             modal.addEventListener('click', function (e) {
-                if (e.target === this) {
-                    if (id === 'signUpModal') closeSignUpModal();
-                    else closeModal(id);
+                if (e.target !== this) return;
+                if (id === 'signUpModal') {
+                    closeSignUpModal();
+                    return;
                 }
+                var state = modal.getAttribute('data-login-state');
+                if ((id === 'logInModal' || id === 'enterRequiredModal') && (state === 'loader' || state === 'welcome')) return;
+                closeModal(id);
             });
         }
     });
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            closeSignUpModal();
-            closeModal('enterRequiredModal');
-            closeModal('logInModal');
+        if (e.key !== 'Escape') return;
+        var enterModal = document.getElementById('enterRequiredModal');
+        var loginModal = document.getElementById('logInModal');
+        if (enterModal && enterModal.classList.contains('active')) {
+            var s = enterModal.getAttribute('data-login-state');
+            if (s === 'loader' || s === 'welcome') return;
+        }
+        if (loginModal && loginModal.classList.contains('active')) {
+            var s2 = loginModal.getAttribute('data-login-state');
+            if (s2 === 'loader' || s2 === 'welcome') return;
+        }
+        closeSignUpModal();
+        closeModal('enterRequiredModal');
+        closeModal('logInModal');
+    });
+}
+
+function initUserDropdown() {
+    document.addEventListener('click', function (e) {
+        const dropdown = document.getElementById('nav-user-dropdown');
+        const navUser = document.getElementById('nav-user');
+        if (dropdown && navUser && !navUser.contains(e.target)) {
+            closeUserDropdown();
         }
     });
 }
@@ -358,13 +561,28 @@ window.closeSignUpModal = closeSignUpModal;
 window.openLogInModal = openLogInModal;
 window.closeLogInModal = closeLogInModal;
 window.switchToSignUp = switchToSignUp;
-window.logout = logout;
-window.getCurrentUser = getCurrentUser;
+window.toggleUserDropdown = toggleUserDropdown;
+window.logOut = logOut;
 
 document.addEventListener('DOMContentLoaded', function () {
     initSignUpForm();
     initEnterLoginForm();
     initLogInForm();
     initModalCloseHandlers();
+    initUserDropdown();
     updateNavForAuth();
 });
+
+// Secret reset: Ctrl+Shift+K (Cmd+Shift+K on Mac) — clears all demo activity data and redirects to index
+document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
+        e.preventDefault();
+        const users = localStorage.getItem('momentA_users');
+        localStorage.clear();
+        if (users) localStorage.setItem('momentA_users', users);
+        seedDemoAccount();
+        console.log('🔄 Demo reset complete. All activity data cleared.');
+        window.location.href = 'index.html';
+    }
+});
+

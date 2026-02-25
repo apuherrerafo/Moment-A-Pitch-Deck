@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Host Application - Moment-A | Become a Host</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b6ec",
+                        "secondary": "#a855f7",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#121221",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            background-color: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(229, 231, 235, 1);
+        }
+        @keyframes slow-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .loader-spin { animation: slow-spin 1.5s linear infinite; }
+        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .loader-pulse { animation: pulse-soft 1.5s ease-in-out infinite; }
+        .nav-user-dropdown-closed { opacity: 0; pointer-events: none; transform: translateY(-8px); }
+        #nav-user-dropdown { transition: opacity 0.15s ease-out, transform 0.15s ease-out; }
+        [data-dropdown-trigger] .dropdown-chevron { transition: transform 0.2s ease; }
+        .nav-user-dropdown-open .dropdown-chevron { transform: rotate(180deg); }
+        .login-welcome-fade { animation: welcome-fade-in 0.3s ease-out forwards; }
+        @keyframes welcome-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fade-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        .welcome-fade-out { animation: fade-out 500ms ease-out forwards; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            visibility: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: background 0.3s ease, backdrop-filter 0.3s ease, visibility 0s linear 0.3s;
+        }
+        .modal-overlay.active {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: #1f2937;
+            border-radius: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.05);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 font-display text-gray-900 transition-colors duration-300 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="index.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-xl">all_inclusive</span>
+                    </div>
+                    <span class="text-xl font-bold text-gray-900">Moment-A</span>
+                </a>
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                        <input type="text" placeholder="Search creators, prizes..." class="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 border-0 focus:ring-2 focus:ring-primary text-gray-900 placeholder-gray-500" />
+                    </div>
+                </div>
+                <div class="hidden lg:flex items-center gap-6">
+                    <a href="index.html#about" class="text-sm font-medium hover:text-primary transition-colors">About Us</a>
+                    <div class="dropdown relative">
+                        <a href="hosts.html" class="text-sm font-medium hover:text-primary transition-colors cursor-pointer">Explore</a>
+                    </div>
+                    <a href="index.html#how-it-works" class="text-sm font-medium hover:text-primary transition-colors">How it works</a>
+                </div>
+                <div id="nav-guest" class="flex items-center gap-3">
+                    <a href="host-application.html" class="hidden sm:block px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-all">Become a host</a>
+                    <button onclick="openLogInModal(event)" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded-full transition-all text-gray-900">Log in</button>
+                    <button onclick="openSignUpModal(event)" class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-full hover:bg-primary/90 hover:scale-105 transition-all">Sign Up</button>
+                </div>
+                <div id="nav-user" style="display:none" class="flex items-center gap-3">
+                    <a href="host-application.html" class="hidden sm:block px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-all">Become a host</a>
+                    <div class="relative">
+                        <button type="button" data-dropdown-trigger onclick="toggleUserDropdown(event)" class="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded-full transition-all border-0 cursor-pointer bg-transparent text-gray-900">
+                            <span class="material-symbols-outlined text-primary text-xl">person</span>
+                            <span data-username class="text-sm font-medium">abc123</span>
+                            <span class="material-symbols-outlined text-lg dropdown-chevron">expand_more</span>
+                        </button>
+                        <div id="nav-user-dropdown" class="nav-user-dropdown-closed absolute right-0 mt-2 w-48 sm:w-56 bg-white shadow-xl border border-gray-200 rounded-xl z-50 pt-4 pb-3 px-1 border-t border-gray-200">
+                            <p data-dropdown-username class="px-4 py-1 text-gray-900 text-sm font-semibold">abc123</p>
+                            <p data-dropdown-secondary class="px-4 py-0 text-gray-500 text-xs truncate">demo@momenta.com</p>
+                            <a id="nav-dropdown-business-manager" href="host-dashboard.html" style="display:none" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition flex items-center gap-2 rounded-lg border-0 bg-transparent cursor-pointer text-left w-full">
+                                <span class="material-symbols-outlined text-sm">business_center</span>
+                                Business Manager
+                            </a>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <button type="button" onclick="logOut()" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:text-red-500 hover:bg-gray-50 transition flex items-center gap-2 border-0 bg-transparent cursor-pointer rounded-lg">
+                                <span class="material-symbols-outlined text-sm">logout</span>
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Banner -->
+    <section class="bg-gradient-to-r from-primary to-secondary rounded-2xl mt-8 p-8 md:p-10 max-w-3xl mx-auto mx-4">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-white">Host Application</h1>
+        <p class="text-white/90 text-sm md:text-base">Apply to become a verified Moment-A host. We'll verify your identity and creator profile—typically within 24 hours.</p>
+    </section>
+
+    <!-- Progress Bar -->
+    <div id="hostAppProgress" class="max-w-3xl mx-auto px-4 mt-6">
+        <p class="text-sm font-medium text-gray-600 mb-2"><span id="hostAppStepLabel">Step 1 of 4</span></p>
+        <div class="h-2 bg-gray-200 rounded-full overflow-hidden flex">
+            <div id="hostAppProgressBar" class="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-300" style="width: 25%"></div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div id="hostAppFormContainer" class="max-w-3xl mx-auto px-4 py-8">
+        <form id="hostAppForm" class="space-y-8">
+
+            <!-- STEP 1: Personal Information -->
+            <div id="hostAppStep1" class="rounded-2xl border border-gray-200 bg-white p-8 shadow-md">
+                <h2 class="bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg px-6 py-3 mb-6">Personal Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label for="hostApp-fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Legal Name</label>
+                        <input type="text" id="hostApp-fullName" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="As it appears on your ID" />
+                        <p id="hostApp-fullName-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-dni" class="block text-sm font-medium text-gray-700 mb-1">DNI / National ID Number</label>
+                        <input type="text" id="hostApp-dni" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="e.g., 72188813" />
+                        <p id="hostApp-dni-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input type="tel" id="hostApp-phone" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="+51 999 999 999" />
+                        <p id="hostApp-phone-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" id="hostApp-email" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="your@email.com" />
+                        <p id="hostApp-email-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-country" class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <select id="hostApp-country" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Select country</option>
+                            <option value="Peru" selected>Peru</option>
+                            <option value="United States">United States</option>
+                            <option value="Mexico">Mexico</option>
+                            <option value="Colombia">Colombia</option>
+                            <option value="Argentina">Argentina</option>
+                            <option value="Chile">Chile</option>
+                            <option value="Brazil">Brazil</option>
+                            <option value="Spain">Spain</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Germany">Germany</option>
+                            <option value="France">France</option>
+                            <option value="Italy">Italy</option>
+                            <option value="Japan">Japan</option>
+                            <option value="Australia">Australia</option>
+                            <option value="India">India</option>
+                            <option value="Ecuador">Ecuador</option>
+                            <option value="Bolivia">Bolivia</option>
+                        </select>
+                        <p id="hostApp-country-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <input type="text" id="hostApp-city" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="e.g., Lima" />
+                        <p id="hostApp-city-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-dob" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                        <input type="date" id="hostApp-dob" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary" />
+                        <p id="hostApp-dob-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                </div>
+                <button type="button" id="hostAppBtnStep1" class="mt-6 w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Continue →</button>
+            </div>
+
+            <!-- STEP 2: Creator Profile -->
+            <div id="hostAppStep2" style="display:none" class="rounded-2xl border border-gray-200 bg-white p-8 shadow-md">
+                <h2 class="bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg px-6 py-3 mb-6">Creator Profile</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label for="hostApp-displayName" class="block text-sm font-medium text-gray-700 mb-1">Display Name / Username</label>
+                        <input type="text" id="hostApp-displayName" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="@YourHandle" />
+                        <p id="hostApp-displayName-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-platform" class="block text-sm font-medium text-gray-700 mb-1">Primary Platform</label>
+                        <select id="hostApp-platform" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Select platform</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Twitter/X">Twitter/X</option>
+                            <option value="Twitch">Twitch</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <p id="hostApp-platform-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-profileUrl" class="block text-sm font-medium text-gray-700 mb-1">Profile URL</label>
+                        <input type="url" id="hostApp-profileUrl" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="https://instagram.com/yourhandle" />
+                        <p id="hostApp-profileUrl-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-followers" class="block text-sm font-medium text-gray-700 mb-1">Total Followers on Primary Platform</label>
+                        <select id="hostApp-followers" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Select range</option>
+                            <option value="1K-10K">1K-10K</option>
+                            <option value="10K-50K">10K-50K</option>
+                            <option value="50K-100K">50K-100K</option>
+                            <option value="100K-500K">100K-500K</option>
+                            <option value="500K-1M">500K-1M</option>
+                            <option value="1M+">1M+</option>
+                        </select>
+                        <p id="hostApp-followers-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div>
+                        <label for="hostApp-category" class="block text-sm font-medium text-gray-700 mb-1">Content Category</label>
+                        <select id="hostApp-category" required class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Select category</option>
+                            <option value="Lifestyle">Lifestyle</option>
+                            <option value="Tech">Tech</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Fashion">Fashion</option>
+                            <option value="Beauty">Beauty</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Automotive">Automotive</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Food">Food</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <p id="hostApp-category-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Do you have additional social media accounts?</label>
+                        <div class="flex gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="hostApp-additionalAccounts" value="Yes" class="accent-primary" /> <span class="text-sm text-gray-700">Yes</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="hostApp-additionalAccounts" value="No" checked class="accent-primary" /> <span class="text-sm text-gray-700">No</span></label>
+                        </div>
+                    </div>
+                    <div id="hostApp-secondaryWrap" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6" style="display:none">
+                        <div>
+                            <label for="hostApp-secondaryPlatform" class="block text-sm font-medium text-gray-700 mb-1">Secondary Platform</label>
+                            <select id="hostApp-secondaryPlatform" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary">
+                                <option value="">Select</option>
+                                <option value="Instagram">Instagram</option>
+                                <option value="TikTok">TikTok</option>
+                                <option value="YouTube">YouTube</option>
+                                <option value="Twitter/X">Twitter/X</option>
+                                <option value="Twitch">Twitch</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="hostApp-secondaryProfileUrl" class="block text-sm font-medium text-gray-700 mb-1">Secondary Profile URL</label>
+                            <input type="url" id="hostApp-secondaryProfileUrl" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="https://..." />
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="hostApp-bio" class="block text-sm font-medium text-gray-700 mb-1">Brief Bio</label>
+                        <textarea id="hostApp-bio" required maxlength="280" rows="4" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Tell us about your content, your community, and why you want to host on Moment-A..."></textarea>
+                        <p class="text-xs text-gray-500 mt-1"><span id="hostApp-bio-count">0</span>/280</p>
+                        <p id="hostApp-bio-error" class="text-red-500 text-sm mt-1 hidden">Required</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Have you hosted giveaways before?</label>
+                        <div class="flex gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="hostApp-hostedBefore" value="Yes" class="accent-primary" /> <span class="text-sm text-gray-700">Yes</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="hostApp-hostedBefore" value="No" checked class="accent-primary" /> <span class="text-sm text-gray-700">No</span></label>
+                        </div>
+                    </div>
+                    <div id="hostApp-previousLinkWrap" class="md:col-span-2" style="display:none">
+                        <label for="hostApp-previousLink" class="block text-sm font-medium text-gray-700 mb-1">Link to a previous giveaway or proof</label>
+                        <input type="url" id="hostApp-previousLink" class="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="https://..." />
+                    </div>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="button" id="hostAppBackTo1" class="px-8 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl transition">← Back</button>
+                    <button type="button" id="hostAppBtnStep2" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Continue →</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Agreements & Verification -->
+            <div id="hostAppStep3" style="display:none" class="rounded-2xl border border-gray-200 bg-white p-8 shadow-md">
+                <h2 class="bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg px-6 py-3 mb-6">Agreements & Verification</h2>
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 mb-6 flex gap-3">
+                    <span class="material-symbols-outlined text-primary shrink-0">info</span>
+                    <p class="text-sm text-gray-600">To protect our community, Moment-A verifies every host application. We'll cross-reference your provided information with your public profiles to confirm your identity. This process typically takes less than 24 hours.</p>
+                </div>
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-confirmTruth" required class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I confirm that all information provided is truthful and accurate</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-confirmVerify" required class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I understand that Moment-A will verify my identity by cross-referencing my personal info with my public social media profiles</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-confirmInterview" required class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I understand that if verification is not possible automatically, Moment-A may contact me to schedule a brief video interview</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-terms" required class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I accept the <a href="#" class="text-primary hover:underline">Host Terms and Conditions</a></span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-privacy" required class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I accept the <a href="#" class="text-primary hover:underline">Privacy Policy</a></span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-tips" class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I'd like to receive tips and updates on how to maximize my reach on Moment-A</span>
+                    </label>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="button" id="hostAppBackTo2" class="px-8 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl transition">← Back</button>
+                    <button type="button" id="hostAppBtnStep3" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Review Application →</button>
+                </div>
+            </div>
+
+            <!-- STEP 4: Review & Submit -->
+            <div id="hostAppStep4" style="display:none" class="rounded-2xl border border-gray-200 bg-white p-8 shadow-md">
+                <h2 class="bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg px-6 py-3 mb-6">Review Your Application</h2>
+                <div id="hostAppReviewContent" class="space-y-6"></div>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="hostApp-declare" required class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary" />
+                        <span class="text-sm text-gray-700">I declare that all information is accurate. I understand that providing false information will result in application rejection and potential account termination.</span>
+                    </label>
+                    <p id="hostApp-declare-error" class="text-red-500 text-sm mt-1 hidden">You must confirm this to submit.</p>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="button" id="hostAppBackTo3" class="px-8 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl transition">← Back</button>
+                    <button type="button" id="hostAppSubmit" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition inline-flex items-center gap-2">
+                        <span class="material-symbols-outlined text-xl">send</span>
+                        Submit Application
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Loader (shown for 2s on submit) -->
+    <div id="hostAppLoader" style="display:none" class="max-w-md mx-auto px-4 py-16 text-center">
+        <div class="rounded-2xl border border-gray-200 bg-white p-10 shadow-md">
+            <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center loader-spin">
+                <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+            </div>
+            <p class="text-gray-500 text-sm loader-pulse">Submitting your application...</p>
+        </div>
+    </div>
+
+    <!-- Confirmation (shown after loader; user must click a button to leave) -->
+    <div id="hostAppConfirmation" style="display:none" class="max-w-2xl mx-auto px-4 py-16">
+        <div class="rounded-2xl border border-gray-200 bg-white p-8 md:p-12 shadow-md text-center">
+            <div class="flex justify-center gap-3 items-center mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-white text-3xl">all_inclusive</span>
+                </div>
+                <span class="material-symbols-outlined text-green-500 text-[48px]">check_circle</span>
+            </div>
+            <h2 class="text-gray-900 text-2xl font-bold mb-2">Application Received!</h2>
+            <p class="text-primary font-mono font-semibold mb-6" id="hostAppRefNumber"></p>
+            <p class="text-gray-600 text-sm mb-4">Thank you for applying to become a Moment-A host! Our verification team will review your application and cross-reference your information within the next <strong>24 hours</strong>.</p>
+            <p class="text-gray-600 text-sm mb-2">You will receive an email at <strong id="hostAppConfirmationEmail"></strong> with one of the following:</p>
+            <ul class="text-left max-w-md mx-auto space-y-2 mb-6 text-sm text-gray-600">
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-green-500 text-xl">check_circle</span> Your host credentials, if everything checks out</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-xl">event</span> A request to schedule a brief video interview, if we need additional verification</li>
+            </ul>
+            <p class="text-gray-500 text-sm mb-8">In the meantime, feel free to explore what other hosts are doing on Moment-A.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="index.html" class="px-8 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl transition font-medium">Back to Home</a>
+                <a href="hosts.html" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition">Explore Hosts</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-16 px-4 sm:px-6 lg:px-8 mt-16">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+                <div class="lg:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-xl">all_inclusive</span>
+                        </div>
+                        <span class="text-xl font-bold text-gray-900">Moment-A</span>
+                    </div>
+                    <p class="text-gray-600 mb-6 max-w-sm">The future of creator-driven engagement. Verified giveaways, real prizes, authentic connections.</p>
+                    <div class="flex items-center gap-4">
+                        <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all"> <span class="material-symbols-outlined text-sm">tag</span> </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all"> <span class="material-symbols-outlined text-sm">chat</span> </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all"> <span class="material-symbols-outlined text-sm">photo_camera</span> </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all"> <span class="material-symbols-outlined text-sm">play_circle</span> </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-widest">Platform</h4>
+                    <ul class="space-y-3">
+                        <li><a href="hosts.html" class="text-sm text-gray-600 hover:text-primary transition-colors">Explore</a></li>
+                        <li><a href="index.html#how-it-works" class="text-sm text-gray-600 hover:text-primary transition-colors">How it works</a></li>
+                        <li><a href="host-application.html" class="text-sm text-gray-600 hover:text-primary transition-colors">Become a host</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-widest">Support</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Safety</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Community</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-widest">Legal</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Cookie Policy</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-primary transition-colors">Disclaimer</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+                <p class="text-sm text-gray-500">&copy; 2024 Moment-A. All rights reserved.</p>
+                <p class="text-xs text-gray-500 font-medium tracking-wide">Built with transparency and trust.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Log In Modal -->
+    <div id="logInModal" class="modal-overlay">
+        <div class="modal-content p-8">
+            <div class="login-modal-close-wrap flex justify-end mb-4">
+                <button onclick="closeLogInModal()" class="text-gray-400 hover:text-gray-300 transition-colors">
+                    <span class="material-symbols-outlined text-3xl">close</span>
+                </button>
+            </div>
+            <div id="loginFormContent">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-2">Welcome Back!</h2>
+                    <p class="text-gray-400">Log in to continue</p>
+                </div>
+                <form id="logInForm" class="space-y-6">
+                <div>
+                    <label for="login-dni" class="block text-sm font-medium mb-2 text-gray-300">DNI</label>
+                    <input type="text" id="login-dni" required placeholder="e.g., 72188813" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-primary transition-all" />
+                </div>
+                <div>
+                    <label for="login-pin" class="block text-sm font-medium mb-2 text-gray-300">6-digit PIN</label>
+                    <input type="password" id="login-pin" required maxlength="6" placeholder="Enter your 6-digit PIN" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-primary transition-all" />
+                </div>
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-semibold hover:opacity-90 transition-all">Log In</button>
+                <p class="text-center text-sm text-gray-400">Don't have an account? <a href="#" onclick="switchToSignUp(event)" class="text-primary hover:underline font-semibold">Sign Up</a></p>
+            </form>
+            </div>
+            <div id="loginLoader" class="hidden flex flex-col items-center justify-center py-12">
+                <div class="w-16 h-16 loader-spin flex items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600">
+                    <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                </div>
+                <p class="mt-4 text-sm text-gray-300 loader-pulse">Signing you in...</p>
+            </div>
+            <div id="loginWelcome" class="hidden flex flex-col items-center justify-center py-12 login-welcome-fade">
+                <div class="w-16 h-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600">
+                    <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                </div>
+                <h2 class="mt-4 text-2xl font-bold text-gray-900 font-display">Welcome back!</h2>
+                <p class="mt-2 text-sm text-gray-400">You're all set. Let's find your next Moment-A.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signUpModal" class="modal-overlay">
+        <div class="modal-content p-8">
+            <div class="flex justify-end mb-4">
+                <button onclick="closeSignUpModal()" class="text-gray-400 hover:text-gray-300 transition-colors">
+                    <span class="material-symbols-outlined text-3xl">close</span>
+                </button>
+            </div>
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-white text-4xl">all_inclusive</span>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">Welcome to Moment-A!</h2>
+                <p class="text-gray-400">Join thousands of members winning real prizes</p>
+            </div>
+            <form id="signUpForm" class="space-y-6">
+                <div id="signUpStep1">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="dni" class="block text-sm font-medium mb-2 text-gray-300">ID Number / DNI</label>
+                            <input type="text" id="dni" required placeholder="Enter your ID number" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-primary transition-all" />
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium mb-2 text-gray-300">Phone Number</label>
+                            <input type="tel" id="phone" required placeholder="+51 999 999 999" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-primary transition-all" />
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium mb-2 text-gray-300">Email Address</label>
+                            <input type="email" id="email" required placeholder="your.email@example.com" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-primary transition-all" />
+                        </div>
+                        <div class="space-y-3 pt-2">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" id="terms" required class="mt-1 w-5 h-5 rounded border-gray-500 text-primary focus:ring-primary" />
+                                <span class="text-sm text-gray-400">I accept the Terms and Conditions</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" id="privacy" required class="mt-1 w-5 h-5 rounded border-gray-500 text-primary focus:ring-primary" />
+                                <span class="text-sm text-gray-400">I accept the Privacy Policy</span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" id="marketing" class="mt-1 w-5 h-5 rounded border-gray-500 text-primary focus:ring-primary" />
+                                <span class="text-sm text-gray-400">I agree to receive promotions and advertising according to the Privacy Policy</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-4 mt-6 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-semibold hover:opacity-90 transition-all">Continue</button>
+                </div>
+                <div id="signUpStep2" style="display:none">
+                    <p class="text-gray-400 mb-4">We've sent a 6-digit code to your phone. Enter it below.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="otp-code" maxlength="6" placeholder="000000" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white text-center text-lg tracking-widest" />
+                        <button type="button" id="signUpOtpBtn" class="px-6 py-3 bg-primary text-white rounded-xl font-semibold whitespace-nowrap">Verify</button>
+                    </div>
+                </div>
+                <div id="signUpStep3" style="display:none">
+                    <p class="text-gray-400 mb-4">Create your 6-digit PIN to secure your account.</p>
+                    <input type="password" id="signup-pin" maxlength="6" placeholder="000000" class="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-600 text-white text-center text-lg tracking-widest mb-4" />
+                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-semibold hover:opacity-90 transition-all">Create Account</button>
+                </div>
+                <div id="signUpStep4" style="display:none" class="text-center py-4">
+                    <span class="material-symbols-outlined text-6xl text-primary mb-4">check_circle</span>
+                    <h3 class="text-xl font-bold mb-2">Account created successfully!</h3>
+                    <p class="text-gray-400 mb-6">You are now logged in.</p>
+                    <button type="button" id="signUpOkBtn" class="w-full py-4 bg-primary text-white rounded-full font-semibold hover:opacity-90 transition-all">OK</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var currentStep = 1;
+            var progressBar = document.getElementById('hostAppProgressBar');
+            var stepLabel = document.getElementById('hostAppStepLabel');
+
+            function updateProgress(step) {
+                currentStep = step;
+                var pct = (step / 4) * 100;
+                progressBar.style.width = pct + '%';
+                stepLabel.textContent = 'Step ' + step + ' of 4';
+            }
+
+            function showStep(step) {
+                for (var i = 1; i <= 4; i++) {
+                    var el = document.getElementById('hostAppStep' + i);
+                    if (el) el.style.display = i === step ? 'block' : 'none';
+                }
+                updateProgress(step);
+            }
+
+            function showError(id, show) {
+                var el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !show);
+            }
+
+            function validateStep1() {
+                var ids = ['hostApp-fullName', 'hostApp-dni', 'hostApp-phone', 'hostApp-email', 'hostApp-country', 'hostApp-city', 'hostApp-dob'];
+                var valid = true;
+                ids.forEach(function (id) {
+                    var input = document.getElementById(id);
+                    var err = document.getElementById(id + '-error');
+                    var empty = !input || !input.value.trim();
+                    if (err) err.classList.toggle('hidden', !empty);
+                    if (empty) valid = false;
+                });
+                return valid;
+            }
+
+            function validateStep2() {
+                var ids = ['hostApp-displayName', 'hostApp-platform', 'hostApp-profileUrl', 'hostApp-followers', 'hostApp-category', 'hostApp-bio'];
+                var valid = true;
+                ids.forEach(function (id) {
+                    var input = document.getElementById(id);
+                    var err = document.getElementById(id + '-error');
+                    var empty = !input || !input.value.trim();
+                    if (err) err.classList.toggle('hidden', !empty);
+                    if (empty) valid = false;
+                });
+                var additional = getRadio('hostApp-additionalAccounts');
+                if (additional === 'Yes') {
+                    var secPlat = document.getElementById('hostApp-secondaryPlatform');
+                    var secUrl = document.getElementById('hostApp-secondaryProfileUrl');
+                    if (secUrl && !secUrl.value.trim()) valid = false;
+                }
+                return valid;
+            }
+
+            function validateStep3() {
+                var cbs = ['hostApp-confirmTruth', 'hostApp-confirmVerify', 'hostApp-confirmInterview', 'hostApp-terms', 'hostApp-privacy'];
+                var valid = true;
+                cbs.forEach(function (id) {
+                    var cb = document.getElementById(id);
+                    if (!cb || !cb.checked) valid = false;
+                });
+                return valid;
+            }
+
+            function getVal(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+            function getRadio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+
+            function buildReview() {
+                var lab = 'text-gray-500 text-sm';
+                var val = 'text-gray-900 font-medium';
+                var html = '';
+                html += '<div class="rounded-xl border border-gray-200 bg-gray-50 p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-gray-900">Personal Information</h3><button type="button" class="text-primary hover:underline text-sm" data-goto="1">Edit</button></div>';
+                html += '<p class="mb-1"><span class="' + lab + '">Full name:</span> <span class="' + val + '">' + getVal('hostApp-fullName') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">DNI / National ID:</span> <span class="' + val + '">' + getVal('hostApp-dni') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Phone:</span> <span class="' + val + '">' + getVal('hostApp-phone') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Email:</span> <span class="' + val + '">' + getVal('hostApp-email') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Country:</span> <span class="' + val + '">' + getVal('hostApp-country') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">City:</span> <span class="' + val + '">' + getVal('hostApp-city') + '</span></p>';
+                html += '<p class="mb-0"><span class="' + lab + '">Date of birth:</span> <span class="' + val + '">' + getVal('hostApp-dob') + '</span></p></div>';
+
+                html += '<div class="rounded-xl border border-gray-200 bg-gray-50 p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-gray-900">Creator Profile</h3><button type="button" class="text-primary hover:underline text-sm" data-goto="2">Edit</button></div>';
+                html += '<p class="mb-1"><span class="' + lab + '">Display name:</span> <span class="' + val + '">' + getVal('hostApp-displayName') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Primary platform:</span> <span class="' + val + '">' + getVal('hostApp-platform') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Profile URL:</span> <span class="' + val + '">' + getVal('hostApp-profileUrl') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Followers:</span> <span class="' + val + '">' + getVal('hostApp-followers') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Category:</span> <span class="' + val + '">' + getVal('hostApp-category') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Additional accounts:</span> <span class="' + val + '">' + getRadio('hostApp-additionalAccounts') + '</span></p>';
+                if (getRadio('hostApp-additionalAccounts') === 'Yes') {
+                    html += '<p class="mb-1"><span class="' + lab + '">Secondary platform:</span> <span class="' + val + '">' + getVal('hostApp-secondaryPlatform') + '</span></p>';
+                    html += '<p class="mb-1"><span class="' + lab + '">Secondary URL:</span> <span class="' + val + '">' + getVal('hostApp-secondaryProfileUrl') + '</span></p>';
+                }
+                html += '<p class="mb-1"><span class="' + lab + '">Bio:</span> <span class="' + val + '">' + getVal('hostApp-bio') + '</span></p>';
+                html += '<p class="mb-1"><span class="' + lab + '">Hosted giveaways before:</span> <span class="' + val + '">' + getRadio('hostApp-hostedBefore') + '</span></p>';
+                if (getRadio('hostApp-hostedBefore') === 'Yes') html += '<p class="mb-0"><span class="' + lab + '">Previous giveaway link:</span> <span class="' + val + '">' + getVal('hostApp-previousLink') + '</span></p>';
+                else html += '<p class="mb-0"></p>';
+                html += '</div>';
+
+                html += '<div class="rounded-xl border border-gray-200 bg-gray-50 p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-gray-900">Agreements</h3><button type="button" class="text-primary hover:underline text-sm" data-goto="3">Edit</button></div>';
+                html += '<p class="mb-0 text-sm text-gray-600">All required agreements and verification checkboxes have been accepted.</p></div>';
+
+                document.getElementById('hostAppReviewContent').innerHTML = html;
+                document.getElementById('hostAppReviewContent').querySelectorAll('[data-goto]').forEach(function (btn) {
+                    btn.addEventListener('click', function () { showStep(parseInt(btn.getAttribute('data-goto'), 10)); });
+                });
+            }
+
+            document.getElementById('hostAppBtnStep1').addEventListener('click', function () {
+                if (validateStep1()) showStep(2);
+            });
+            document.getElementById('hostAppBackTo1').addEventListener('click', function () { showStep(1); });
+            document.getElementById('hostAppBtnStep2').addEventListener('click', function () {
+                if (validateStep2()) showStep(3);
+            });
+            document.getElementById('hostAppBackTo2').addEventListener('click', function () { showStep(2); });
+            document.getElementById('hostAppBtnStep3').addEventListener('click', function () {
+                if (validateStep3()) {
+                    buildReview();
+                    showStep(4);
+                }
+            });
+            document.getElementById('hostAppBackTo3').addEventListener('click', function () { showStep(3); });
+
+            document.querySelectorAll('input[name="hostApp-additionalAccounts"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    document.getElementById('hostApp-secondaryWrap').style.display = this.value === 'Yes' ? 'block' : 'none';
+                });
+            });
+            document.querySelectorAll('input[name="hostApp-hostedBefore"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    document.getElementById('hostApp-previousLinkWrap').style.display = this.value === 'Yes' ? 'block' : 'none';
+                });
+            });
+
+            document.getElementById('hostApp-bio').addEventListener('input', function () {
+                var c = document.getElementById('hostApp-bio-count');
+                if (c) c.textContent = (this.value || '').length;
+            });
+
+            document.getElementById('hostAppSubmit').addEventListener('click', function () {
+                var decl = document.getElementById('hostApp-declare');
+                var errDecl = document.getElementById('hostApp-declare-error');
+                if (!decl || !decl.checked) {
+                    if (errDecl) errDecl.classList.remove('hidden');
+                    return;
+                }
+                if (errDecl) errDecl.classList.add('hidden');
+
+                var ref = 'MA-HOST-2026-' + Math.floor(1000 + Math.random() * 9000);
+                var data = {
+                    reference: ref,
+                    fullName: getVal('hostApp-fullName'),
+                    dni: getVal('hostApp-dni'),
+                    phone: getVal('hostApp-phone'),
+                    email: getVal('hostApp-email'),
+                    country: getVal('hostApp-country'),
+                    city: getVal('hostApp-city'),
+                    dob: getVal('hostApp-dob'),
+                    displayName: getVal('hostApp-displayName'),
+                    platform: getVal('hostApp-platform'),
+                    profileUrl: getVal('hostApp-profileUrl'),
+                    followers: getVal('hostApp-followers'),
+                    category: getVal('hostApp-category'),
+                    additionalAccounts: getRadio('hostApp-additionalAccounts'),
+                    secondaryPlatform: getVal('hostApp-secondaryPlatform'),
+                    secondaryProfileUrl: getVal('hostApp-secondaryProfileUrl'),
+                    bio: getVal('hostApp-bio'),
+                    hostedBefore: getRadio('hostApp-hostedBefore'),
+                    previousLink: getVal('hostApp-previousLink'),
+                    submittedAt: new Date().toISOString()
+                };
+
+                try {
+                    var stored = JSON.parse(localStorage.getItem('momentA_hostApplications') || '[]');
+                    stored.push(data);
+                    localStorage.setItem('momentA_hostApplications', JSON.stringify(stored));
+                } catch (e) {}
+
+                document.getElementById('hostAppFormContainer').style.display = 'none';
+                document.getElementById('hostAppProgress').style.display = 'none';
+                document.getElementById('hostAppLoader').style.display = 'block';
+                document.getElementById('hostAppConfirmation').style.display = 'none';
+
+                setTimeout(function () {
+                    document.getElementById('hostAppLoader').style.display = 'none';
+                    document.getElementById('hostAppConfirmation').style.display = 'block';
+                    document.getElementById('hostAppRefNumber').textContent = ref;
+                    document.getElementById('hostAppConfirmationEmail').textContent = data.email;
+                }, 2000);
+            });
+        })();
+    </script>
+
+    <script src="auth.js?v=3"></script>
+</body>
+
+</html>
