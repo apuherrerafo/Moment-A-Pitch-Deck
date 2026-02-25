@@ -553,6 +553,17 @@ function initUserDropdown() {
     });
 }
 
+function navigateExplore(e) {
+    if (e) e.preventDefault();
+    var cur = getCurrentUser();
+    if (cur) {
+        window.location.href = 'hosts.html#hosts';
+    } else {
+        openLogInModal(e);
+    }
+}
+
+window.navigateExplore = navigateExplore;
 window.openEnterModal = openEnterModal;
 window.closeEnterModal = closeEnterModal;
 window.switchToSignUpFromEnter = switchToSignUpFromEnter;
