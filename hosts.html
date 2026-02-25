@@ -283,19 +283,21 @@
     </nav>
 
     <style>
-        .feed-hidden { display: none !important; }
+        #feed-hosts, #feed-momenta { display: none; }
+        #feed-hosts.active-tab { display: block; }
+        #feed-momenta.active-tab { display: block; }
     </style>
 
     <!-- Feed Toggle Pills -->
     <div class="flex justify-center py-2 border-b border-gray-200 bg-white">
         <div class="inline-flex bg-gray-100 rounded-full p-0.5">
-            <button id="pill-hosts" onclick="switchFeed('hosts')" class="px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer bg-white text-gray-900 shadow-sm">Hosts</button>
-            <button id="pill-momenta" onclick="switchFeed('momenta')" class="px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer text-gray-500 hover:text-gray-700">Moment-A's</button>
+            <button id="pill-hosts" onclick="switchTab('hosts')" class="px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer text-gray-500 hover:text-gray-700">Hosts</button>
+            <button id="pill-momenta" onclick="switchTab('momentas')" class="px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer text-gray-500 hover:text-gray-700">Moment-A's</button>
         </div>
     </div>
 
-    <!-- Moment-A's Feed (hidden by default) -->
-    <div id="feed-momenta" class="feed-hidden">
+    <!-- Moment-A's tab (hidden until activated by JS) -->
+    <div id="feed-momenta">
         <div class="max-w-6xl mx-auto px-6 pt-4 pb-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -1777,28 +1779,42 @@
     </div>
 
     <script>
-        function switchFeed(tab) {
-            var hosts = document.getElementById('feed-hosts');
-            var momenta = document.getElementById('feed-momenta');
-            var pillH = document.getElementById('pill-hosts');
-            var pillM = document.getElementById('pill-momenta');
-            var base = 'px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer ';
+        function switchTab(tab) {
+            var hostContent = document.getElementById('feed-hosts');
+            var momentaContent = document.getElementById('feed-momenta');
+            var hostPill = document.getElementById('pill-hosts');
+            var momentaPill = document.getElementById('pill-momenta');
 
-            if (tab === 'momenta') {
-                hosts.classList.add('feed-hidden');
-                momenta.classList.remove('feed-hidden');
-                pillM.className = base + 'bg-white text-gray-900 shadow-sm';
-                pillH.className = base + 'text-gray-500 hover:text-gray-700';
+            var activePill = 'px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer bg-white text-gray-900 shadow-sm';
+            var inactivePill = 'px-5 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer text-gray-500 hover:text-gray-700';
+
+            hostContent.classList.remove('active-tab');
+            momentaContent.classList.remove('active-tab');
+
+            if (tab === 'momentas') {
+                momentaContent.classList.add('active-tab');
+                momentaPill.className = activePill;
+                hostPill.className = inactivePill;
+                window.location.hash = 'momentas';
             } else {
-                hosts.classList.remove('feed-hidden');
-                momenta.classList.add('feed-hidden');
-                pillH.className = base + 'bg-white text-gray-900 shadow-sm';
-                pillM.className = base + 'text-gray-500 hover:text-gray-700';
+                hostContent.classList.add('active-tab');
+                hostPill.className = activePill;
+                momentaPill.className = inactivePill;
+                window.location.hash = 'hosts';
             }
         }
+
+        // Initialize on load — script is at bottom of body so DOM is ready
+        (function() {
+            if (window.location.hash === '#momentas') {
+                switchTab('momentas');
+            } else {
+                switchTab('hosts');
+            }
+        })();
     </script>
 
-    <script src="auth.js?v=4"></script>
+    <script src="auth.js?v=5"></script>
 </body>
 
 </html>

@@ -370,7 +370,7 @@ function doLogin(dni, pin, modalId, successMessage) {
         role: userRole
     });
 
-    var redirectTarget = (userRole === 'host') ? 'host-dashboard.html' : 'hosts.html';
+    var redirectTarget = (userRole === 'host') ? 'host-dashboard.html' : 'hosts.html#hosts';
 
     // Step 1: Show loader immediately
     showLoginLoader(modalId);
